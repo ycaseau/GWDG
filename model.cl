@@ -7,6 +7,7 @@
 // this file contains the data model for the GWDG simulation project
 // this is the code that was produced in 2009 : it does not include the 
 // feedback loop (only feedback = CO2 tax as a function of CO2 for each block)
+// this code is shared on GitHub
 
 // ********************************************************************
 // *    Part 1: Supply side: Energy production                        *

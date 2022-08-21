@@ -6,6 +6,7 @@
 
 // this file contains the four sub-models that determine interaction
 // between players as well as the overall simulation engine
+// this code is shared under GWDG github
 
 // ********************************************************************
 // *    Part 1: Production model M1                                   *
