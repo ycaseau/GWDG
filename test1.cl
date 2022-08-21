@@ -286,3 +286,21 @@ A :: affine(list(500,0.0),list(800,1.0),list(1400,4.0),list(2800,2.0),list(6000,
       for i in (1 .. n) run(pb),
       see() ]
 
+
+// ------------------ INTERPRETED CODE FRAGMENT ------------------------------------------------
+
+// upload(m:module,proj:string,user:string,commit:string)
+// uploads all the files from m onto github with a commit comment, onto
+// assumes that git init has been done
+[upload(m:module,proj:string,user:string,comment:string)
+  -> let cdstring := "cd " /+ m.source /+ ";" in
+      (for f in m.made_of shell(cdstring /+ "git add " /+ f /+ ".cl")
+       shell(cdstring /+ "git commit -m \"" /+ comment /+ "\"")
+       shell(cdstring /+ "git push -f origin master"))
+]
+
+
+[upload(m:module,s:string)
+  -> upload(m,"GWDG","ycaseau",s)]
+
+// ------------------ END OF FRAGMENT : upload -------------------------------------------------
