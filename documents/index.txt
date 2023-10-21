@@ -1,0 +1,7 @@
+This directory contains the public documents that have been published related to GWDG
+- IAMandGlovbalWarmingOctober2023.pdf
+  Presentation to CFM of CCEM version 0.4 model
+- GlobalWarmingDynamicGamesv0.3.pdf
+  The original 2009 Presentation
+- CCEMMerch2023.pdf
+  presentation of the version 0.3 of CCEM
