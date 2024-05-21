@@ -1,30 +1,50 @@
 // +-------------------------------------------------------------------------+
-// |     Global Warming Dynamic Games (GWDG)                                      |
+// |     Global Warming Dynamic Games (GWDG)                                 |
 // |     readme                                                              |
-// |     Copyright (C) Yves Caseau, 2008-2023                                |
+// |     Copyright (C) Yves Caseau, 2008-2024                                |
 // +-------------------------------------------------------------------------+
 
-VERSION : V0.4
+VERSION : V0.5
 
 1. Project Description 
 ======================
 
-<this must exist somewhere>
+GWDG  is a long term project based on
+- CCEM : a global earth model about the energy/economy/climate/redirection model
+- GTES : evolutionary
+- Claire Server : a toolkit to produce a Go Web server for CLAIRE applications
+
+This repository is the official repo for CCEM (Coupling Coarse Earth Models)
+- each major relase has its own subdirectory 
+- the current version is v0.5
 
 
 
-2. Version Description:  (V0.4)
+2. Version Description:  (V0.5)
 ======================
 
+Version 0.3:  2022
+
+Version 0.4 : 2023
 This version implements an updated CCEM model with four zones EU, US, CN and RoW
 with their own economies
 This is the reference version for the "IAM & Global Warming" talks
+
+Version 0.5 : 2024
+
 
 
 3. Installation:
 ===============
 
-this is a standard module, look at init.cl in wk.
+The files are provided as CLAIRE files (executable specifications) and Javascript files.
+Installation notes will come later, this is still a prototype
+
+How to use the CLAIRE files:
+
+
+
+How to use the Javascrip files:
 
 	
 4. Claire files
