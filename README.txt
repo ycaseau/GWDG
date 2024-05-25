@@ -11,7 +11,7 @@ VERSION : V0.5
 
 GWDG  is a long term project based on
 - CCEM : a global earth model about the energy/economy/climate/redirection model
-- GTES : evolutionary
+- GTES : evolutionary game-theoretical simulation
 - Claire Server : a toolkit to produce a Go Web server for CLAIRE applications
 
 This repository is the official repo for CCEM (Coupling Coarse Earth Models)
@@ -31,7 +31,7 @@ with their own economies
 This is the reference version for the "IAM & Global Warming" talks
 
 Version 0.5 : 2024
-
+this version has a complete implementation of redirection, including trade protectionism (e.g.CBAM)
 
 
 3. Installation:
@@ -58,13 +58,14 @@ input.cl           configuration file (always interpreted)
 	
 5. Related doc
 ==============
-overall description may be found at http://organisationarchitecture.blogspot.com/
+
+the updated documentation may be found on:  https://sites.google.com/view/modelccem
+discussions about CCEM and its results may be found at http://organisationarchitecture.blogspot.com/
 
 6. Data
 =======
 
 This project uses scenario files (look at oai to use a similar approach)
-
 
 7.Test and run
 ==============
