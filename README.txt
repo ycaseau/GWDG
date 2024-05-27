@@ -18,7 +18,7 @@ This repository is the official repo for CCEM (Coupling Coarse Earth Models)
 - each major relase has its own subdirectory 
 - the current version is v0.5
 
-CCEM Web site : https://sites.google.com/view/modelccem
+CCEM Web site : http://modelccem.eu
 
 2. Version Description:  (V0.5)
 ======================
