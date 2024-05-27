@@ -11,3 +11,6 @@ Main changes from v0.4
     It would be good to validate the IPCC prevision (delta CO2 to delta T) from 2020 to 2023
 (6) Protectionism (import taxes, CBAM or public boycott) : reduce import/export based on difference in CO2/Energy and CO2taxes
 (7) Energy transition is a political decision (a factor from 0 to 100% = fastest possible transition based on belief)
+
+the equations number have been added in the M1 to M5 sections of the game.cl file
+cf. http://modelccem.eu
