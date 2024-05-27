@@ -41,10 +41,21 @@ The files are provided as CLAIRE files (executable specifications) and Javascrip
 Installation notes will come later, this is still a prototype
 
 How to use the CLAIRE files:
+-----------------------------
 
+(1) define a module in init.cl (if you have CLAIRE4 installed on your computer)
+m5 :: module(part_of = claire,
+              source = *where* / "gwdgv0.5",
+              uses = list(Reader),
+              made_of = list("model","game","simul","input"))
 
+(2) claire4 -m m5 will run CCEM under the REPL interpreter.
 
 How to use the Javascrip files:
+-------------------------------
+
+node gw1.js
+will run one 90 years iteration of the simulation 
 
 	
 4. Claire files
