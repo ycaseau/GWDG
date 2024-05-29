@@ -9,7 +9,9 @@ const kernel = require('./ClaireKernel')
 //  *    Part 1: Supply side: Energy Production                        *
 //  ********************************************************************
 //  we need to manipulate simple curves - in version 0.3 we use both step- and  piece-wise linear
-//  functions, defined by a list of pairs (x,f(x))class ListFunction extends kernel.ClaireObject{ 
+//  functions, defined by a list of pairs (x,f(x))
+
+class ListFunction extends kernel.ClaireObject{ 
    
   constructor() { 
     super()
@@ -40,7 +42,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method adjust @ ListFunction ------------- 
 //  adjust a policy represented by an affine function: keep the dates, change the value by a factor
-//  destructive operation -> changes the affine / list functionAdjust (factor) { 
+//  destructive operation -> changes the affine / list function
+Adjust (factor) { 
     var i  = 1
     var g0071  = this.n
     while (i <= g0071) { 
@@ -53,7 +56,8 @@ const kernel = require('./ClaireKernel')
 
 
 // class file for StepFunction in module gw1 // 
-//  StepFunction is the simplestclass StepFunction extends ListFunction{ 
+//  StepFunction is the simplest
+class StepFunction extends ListFunction{ 
    
   constructor() { 
     super()
@@ -68,7 +72,8 @@ const kernel = require('./ClaireKernel')
 //  this would make gw0 non diet
 //  [get(a:Affine,x:integer) : float 
 //    -> get(a,float!(x)) ]
-//  returns the value of the step function for a given point between m and M : easier !Get (x) { 
+//  returns the value of the step function for a given point between m and M : easier !
+Get (x) { 
     var Result 
     var i  = 0
     var j  = 1
@@ -92,7 +97,8 @@ const kernel = require('./ClaireKernel')
 
 
 // class file for Affine in module gw1 // 
-//  Affine uses a linear interpolation  class Affine extends ListFunction{ 
+//  Affine uses a linear interpolation  
+class Affine extends ListFunction{ 
    
   constructor() { 
     super()
@@ -105,7 +111,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method get @ Affine ------------- 
 //  utilities ------------------------------------------------------------------
-//  returns the value of the affine function for a given point between m and MGet (x) { 
+//  returns the value of the affine function for a given point between m and M
+Get (x) { 
     var Result 
     var i  = 0
     var j  = 1
@@ -156,7 +163,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method improve @ Affine ------------- 
-//  improve : modify the factors without changing the datesImprove (factor) { 
+//  improve : modify the factors without changing the dates
+Improve (factor) { 
     var Result 
     var _CL_obj  = (new Affine()).Is(C_Affine)
     _CL_obj.n = this.n
@@ -183,7 +191,8 @@ const kernel = require('./ClaireKernel')
 
 
 // class file for Transition in module gw1 // 
-//  in GW3 we create transition objects (s1 -> s2) to make the code easier to read !class Transition extends kernel.ClaireObject{ 
+//  in GW3 we create transition objects (s1 -> s2) to make the code easier to read !
+class Transition extends kernel.ClaireObject{ 
    
   constructor() { 
     super()
@@ -202,12 +211,14 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method transferAmount @ Transition ------------- 
-//  additional transfer amounts for a transitionTransferAmount (c,y) { 
+//  additional transfer amounts for a transition
+TransferAmount (c,y) { 
     return  c.transferFlows[y-1][this.index-1]
     } 
   
   // ----- class method actualEnergy @ Transition ------------- 
-//  actual transfer in PWh (world wide)ActualEnergy (y) { 
+//  actual transfer in PWh (world wide)
+ActualEnergy (y) { 
     var Result 
     var g0076  = 0
     for (const g0079 of C_Consumer.descendants){ 
@@ -225,7 +236,8 @@ const kernel = require('./ClaireKernel')
 
 // class file for Supplier in module gw1 // 
 //  an energy supplier is defined by its inventory and the way it can be brought
-//  to market (price-wise = strategy & production-wise = constraints)class Supplier extends kernel.ClaireThing{ 
+//  to market (price-wise = strategy & production-wise = constraints)
+class Supplier extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -253,7 +265,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method getTransition @ Supplier ------------- 
-//  finds a transitionGetTransition (s2) { 
+//  finds a transition
+GetTransition (s2) { 
     var Result 
     var x 
     var tr_some  = null
@@ -274,7 +287,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method showOutput @ Supplier ------------- 
-//  debug: explain the reasonningShowOutput (y,p) { 
+//  debug: explain the reasonning
+ShowOutput (y,p) { 
     var cMax  = this.Capacity(y,this.Prev3Price(y))
     var cProd  = (this.production*((1 <= (cMax/this.capacityMax)) ? 
       1 :
@@ -298,12 +312,14 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method prevPrice @ Supplier ------------- 
-//  previous pricePrevPrice (y) { 
+//  previous price
+PrevPrice (y) { 
     return  this.sellPrices[(y-1)-1]
     } 
   
   // ----- class method prev3Price @ Supplier ------------- 
-//  previous price, average over 3 yearsPrev3Price (y) { 
+//  previous price, average over 3 years
+Prev3Price (y) { 
     if (y == 2) { 
       return  this.price
       }  else if (y == 3) { 
@@ -314,13 +330,15 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method prevMaxCapacity @ Supplier ------------- 
-//  previous max capacity (includes additions from transfers)PrevMaxCapacity (y) { 
+//  previous max capacity (includes additions from transfers)
+PrevMaxCapacity (y) { 
     return  (this.capacities[(y-1)-1]+this.addedCapacities[(y-1)-1])
     } 
   
   // ----- class method prodGrowth @ Supplier ------------- 
 //  this is a heuristic that needs to get adjusted, it says that the maxcapacity should be X% (110)
-//  of the net demand that was seen (net = needs - savings & cancel) averaged over past 3 yearsProdGrowth (prev,y) { 
+//  of the net demand that was seen (net = needs - savings & cancel) averaged over past 3 years
+ProdGrowth (prev,y) { 
     var Result 
     if (y <= 3) { 
       Result = 0.05
@@ -357,7 +375,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method getProd @ Supplier ------------- 
 //  The second step is to maximize the utility function over a price range from 0 to X, (that is
-//  with a capacity that does not increase more than 15%GetProd (y) { 
+//  with a capacity that does not increase more than 15%
+GetProd (y) { 
     var cMax  = this.Capacity(y,this.Prev3Price(y))
     this.capacities[y-1]=(cMax-this.addedCapacities[(y-1)-1])
     if (this == C_TESTE) { 
@@ -383,14 +402,16 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method oilEquivalent @ Supplier ------------- 
 //  when we compute cancellation or savings, all threshold are defined with oilPrice
-//  this is a normalized (equivalent of oil, adjusted for price increase)OilEquivalent (p) { 
+//  this is a normalized (equivalent of oil, adjusted for price increase)
+OilEquivalent (p) { 
     return  ((p*C_pb.oil.price)/this.price)
     } 
   
   // ----- class method recordCapacity @ Supplier ------------- 
 //  each production has a price (Invest = capacity increase / 20)
 //  we distribute the energy investment across the blocs using energy consumption as a ratio
-//  note: we call this once consomations are knownRecordCapacity (y) { 
+//  note: we call this once consomations are known
+RecordCapacity (y) { 
     var p1  = this.sellPrices[y-1]
     var p2  = this.Prev3Price(y)
     var addCapacity  = kernel.max_float(0,(this.capacities[y-1]-this.PrevMaxCapacity(y)))
@@ -413,7 +434,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method shareOfConsumption @ Supplier ------------- 
 //  share of energy consumption for a block
-//  we use the previous year to get the ratio (consumption is not known yet)ShareOfConsumption (b,y) { 
+//  we use the previous year to get the ratio (consumption is not known yet)
+ShareOfConsumption (b,y) { 
     var Result 
     var arg_1 
     var g0090  = 0
@@ -431,7 +453,8 @@ const kernel = require('./ClaireKernel')
   // ----- class method balanceEnergy @ Supplier ------------- 
 //  balance production and consumption
 //  production is defined by price / consumption is allocated to each consumer proportionnally 
-//  to reach a perfect prod/conso balanceBalanceEnergy (y) { 
+//  to reach a perfect prod/conso balance
+BalanceEnergy (y) { 
     var production  = this.GetOutput(this.sellPrices[y-1],this.Capacity(y,this.Prev3Price(y)),y)
     var listConsos 
     var c_bag  = []
@@ -457,7 +480,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method checkTransfers @ Supplier ------------- 
-//  checks that transfers are consistent (delta capacities versus current levels of transfers)CheckTransfers (y) { 
+//  checks that transfers are consistent (delta capacities versus current levels of transfers)
+CheckTransfers (y) { 
     this.addedCapacities[y-1]=this.addedCapacity
     var delta1  = (this.addedCapacity-this.addedCapacities[(y-1)-1])
     var delta2  = 0
@@ -484,7 +508,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method avgTax @ Supplier ------------- 
-//  average tax AvgTax (y) { 
+//  average tax 
+AvgTax (y) { 
     var Result 
     var w1  = 0
     var w2  = 0
@@ -499,7 +524,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method init @ Supplier ------------- 
-//  supplier initialization (and reinit)Init () { 
+//  supplier initialization (and reinit)
+Init () { 
     { 
       var va_arg2 
       var i_bag  = []
@@ -617,7 +643,8 @@ const kernel = require('./ClaireKernel')
 // class file for FiniteSupplier in module gw1 // 
 //  keep track of max capacity
 //  two subclasses with two capacity model
-//  This is the regular one for fossile fuels : finite inventory = f(price)class FiniteSupplier extends Supplier{ 
+//  This is the regular one for fossile fuels : finite inventory = f(price)
+class FiniteSupplier extends Supplier{ 
    
   constructor(name) { 
     super(name)
@@ -653,7 +680,8 @@ const kernel = require('./ClaireKernel')
 //  OCCAM version -> we do not model the price strategy (lower to increase revenue), nor do model 
 //  really simple version : linear bounded by Cmax
 //     linear -> p = x.price (origin) ->  p.production (origin)   &   x.sensitivity
-//     capped by cMax (see below, given as a parameter)GetOutput (p,cMax,y) { 
+//     capped by cMax (see below, given as a parameter)
+GetOutput (p,cMax,y) { 
     var Result 
     var cProd  = (this.production*((1 <= (cMax/this.capacityMax)) ? 
       1 :
@@ -669,7 +697,8 @@ const kernel = require('./ClaireKernel')
 //  we also take into account the quantity that was added through substitutions (cf. PrevMax uses additions)
 //  p is the average price of the last 3 years -> sets available inventory
 //  regular version for fossile energies : tries to match the evolution of demand
-//  capacity is adjusted when the inventory is below the threshold levelCapacity (y,p) { 
+//  capacity is adjusted when the inventory is below the threshold level
+Capacity (y,p) { 
     var Result 
     var prev  = this.PrevMaxCapacity(y)
     var I1  = (this.inventory.Get(p)-this.gone)
@@ -685,7 +714,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method showMaxCapacity @ FiniteSupplier ------------- 
-//  debug: explain the reasonning for max capacity (finite case)ShowMaxCapacity (y,p) { 
+//  debug: explain the reasonning for max capacity (finite case)
+ShowMaxCapacity (y,p) { 
     var prev  = this.PrevMaxCapacity(y)
     var I1  = (this.inventory.Get(p)-this.gone)
     var I0  = this.inventory.Get(0)
@@ -716,7 +746,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method maxGrowthRate @ FiniteSupplier ------------- 
-//  computes the max capacity growth as a percentageMaxGrowthRate () { 
+//  computes the max capacity growth as a percentage
+MaxGrowthRate () { 
     return  this.capacityGrowth
     } 
   
@@ -739,7 +770,8 @@ const kernel = require('./ClaireKernel')
 
 // class file for InfiniteSupplier in module gw1 // 
 //  a useful trace for debug: level of known inventory
-//  new in GW3: infinite energy model where the potential of new capacity depends on the priceclass InfiniteSupplier extends Supplier{ 
+//  new in GW3: infinite energy model where the potential of new capacity depends on the price
+class InfiniteSupplier extends Supplier{ 
    
   constructor(name) { 
     super(name)
@@ -769,7 +801,8 @@ const kernel = require('./ClaireKernel')
   // ----- class method getOutput @ InfiniteSupplier ------------- 
 //  CCEM 4 : formula is different for clean energy : supplier needs to sell all it can produce
 //  but expects a price that is proportional to the GDP (in a world of energy abundance) - modulo sensitivity
-//  note : in a world of restriction, price is driven by cancellationGetOutput (p,cMax,y) { 
+//  note : in a world of restriction, price is driven by cancellation
+GetOutput (p,cMax,y) { 
     var Result 
     var cProd  = this.production
     var p0  = this.price
@@ -785,7 +818,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method capacity @ InfiniteSupplier ------------- 
 //  new version for clean energies -> growthPotential tells how much we could add
-//  capacity tries to match 110% of net demand (this should become a parameter, hard coded in test1.cl) Capacity (y,p) { 
+//  capacity tries to match 110% of net demand (this should become a parameter, hard coded in test1.cl) 
+Capacity (y,p) { 
     var Result 
     var prev  = this.PrevMaxCapacity(y)
     var maxDelta  = this.growthPotential.Get(yearF(y))
@@ -852,7 +886,8 @@ const kernel = require('./ClaireKernel')
 //  *    Part 3: Economy and Strategies                                *
 //  ********************************************************************
 //  in v0.1 we keep one global economy
-//  i.e. the consumers are all aggregated into oneclass Economy extends kernel.ClaireThing{ 
+//  i.e. the consumers are all aggregated into one
+class Economy extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -914,7 +949,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method init @ Economy ------------- 
-//  init the variables associated to a block (represents a consumer economy)    Init () { 
+//  init the variables associated to a block (represents a consumer economy)    
+Init () { 
     { 
       var va_arg2 
       var i_bag  = []
@@ -1054,7 +1090,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method consolidate @ Economy ------------- 
-//  consolidation for a given yearConsolidate (y) { 
+//  consolidation for a given year
+Consolidate (y) { 
     var arg_1 
     var g0125  = 0
     for (const g0128 of C_Block.descendants){ 
@@ -1143,7 +1180,8 @@ const kernel = require('./ClaireKernel')
 
 
 // class file for Block in module gw1 // 
-//  code is cleaner if we call the economy of a Consumer a Blockclass Block extends Economy{ 
+//  code is cleaner if we call the economy of a Consumer a Block
+class Block extends Economy{ 
    
   constructor(name) { 
     super(name)
@@ -1168,7 +1206,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method economyRatio @ Block ------------- 
 //  GW4 : the economy dependency (gdp -> Gtoe) is made of local and export influence
-//  this is a multiplicative factor (applied to inital state)EconomyRatio (y) { 
+//  this is a multiplicative factor (applied to inital state)
+EconomyRatio (y) { 
     if (y == 2) { 
       return  1.02
       } else {
@@ -1177,7 +1216,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method localEconomyRatio @ Block ------------- 
-//  local influence is GDP weighted by inner zone tradeLocalEconomyRatio (y) { 
+//  local influence is GDP weighted by inner zone trade
+LocalEconomyRatio (y) { 
     return  (this.EconomyRatio(y)*this.InnerTrade())
     } 
   
@@ -1185,12 +1225,14 @@ const kernel = require('./ClaireKernel')
 //  export influence from other block to which w is exporting (assuming w does not protect its frontiers)  
 //  v5: changed economyRatio to w (the health of the importing economy)
 //  cf comments in log.cl this is a differential equation, what is returned is (1 + dx/x) 
-//           dE/E = dLocal/Local x (Local/E = innerTrade) + dExport/Export x (Export/E) + dImport/Import x (Import / E)GlobalEconomyRatio (y) { 
+//           dE/E = dLocal/Local x (Local/E = innerTrade) + dExport/Export x (Export/E) + dImport/Import x (Import / E)
+GlobalEconomyRatio (y) { 
     return  ((this.LocalEconomyRatio(y)+this.OuterCommerceRatio(y))+importReductionRatio_Block1(this,y))
     } 
   
   // ----- class method outerCommerceRatio @ Block ------------- 
-//  returns the weighted sum of growth that is associated to exports (from x to other w2 that are growing, modulo trade barriers )OuterCommerceRatio (y) { 
+//  returns the weighted sum of growth that is associated to exports (from x to other w2 that are growing, modulo trade barriers )
+OuterCommerceRatio (y) { 
     var Result 
     var g0172  = 0
     for (const g0175 of C_Block.descendants){ 
@@ -1206,12 +1248,14 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method importTradeRatio @ Block ------------- 
-//  trade from w2 -> w expressed as a fraction of w gdp (hence the 3rd term)ImportTradeRatio (w2,y) { 
+//  trade from w2 -> w expressed as a fraction of w gdp (hence the 3rd term)
+ImportTradeRatio (w2,y) { 
     return  ((this.EconomyRatio(y)*C_pb.trade[w2.Index()-1][this.Index()-1])*(w2.gdp/this.gdp))
     } 
   
   // ----- class method tradeImportFactors @ Block ------------- 
-//  book keepingTradeImportFactors (y) { 
+//  book keeping
+TradeImportFactors (y) { 
     var Result 
     var w2_bag  = []
     for (const g0176 of C_Block.descendants){ 
@@ -1232,7 +1276,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method populationRatio @ Block ------------- 
 //  new in GWDG : integrate a CBAM factor - reduction of trade   
-//  the second term is, as before, based on  growthPopulationRatio (y) { 
+//  the second term is, as before, based on  growth
+PopulationRatio (y) { 
     var Result 
     var c  = this.describes
     var p0  = c.population.Get(yearF(1))
@@ -1243,7 +1288,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method populationGrowth @ Block ------------- 
 //  differential : one year versus the previous one
-//  in CCEM v5, we take into account the effect of painPopulationGrowth (y) { 
+//  in CCEM v5, we take into account the effect of pain
+PopulationGrowth (y) { 
     var Result 
     var arg_1 
     if (y == 2) { 
@@ -1259,7 +1305,8 @@ const kernel = require('./ClaireKernel')
   // ----- class method newMaxout @ Block ------------- 
 //  this computes the maxout expected at year y based on previous year, poopulation growth and growth invest
 //  we use the heuristic (expected damage on GDP) that we differentiate between two years and multiply by 3 to 
-//  compensate the integration factor (GDP growing and disaster ratio growing, so final compound effect needs to be multiplied by 3)NewMaxout (y) { 
+//  compensate the integration factor (GDP growing and disaster ratio growing, so final compound effect needs to be multiplied by 3)
+NewMaxout (y) { 
     return  (((this.maxout[(y-1)-1]*this.PopulationGrowth(y))+(this.investGrowth[(y-1)-1]*this.roI.Get(yearF(y))))*(1-((0 <= (3*(this.disasterRatios[y-1]-this.disasterRatios[(y-1)-1]))) ? 
       (3*(this.disasterRatios[y-1]-this.disasterRatios[(y-1)-1])) :
       0)))
@@ -1270,7 +1317,8 @@ const kernel = require('./ClaireKernel')
 //  note : in GW3 we have one world economy, in GW4 we may separate
 //  (a) we take the inverst into account to comput w.maxout
 //  (b) we take the energy consumption cancellation into account
-//  (c) we take the GW distasters into accountConsumes (y) { 
+//  (c) we take the GW distasters into account
+Consumes (y) { 
     var e  = C_pb.earth
     var t  = e.temperatures[(y-1)-1]
     var iv  = this.investGrowth[(y-1)-1]
@@ -1320,7 +1368,8 @@ const kernel = require('./ClaireKernel')
   // ----- class method impactFromCancel @ Block ------------- 
 //  GW4: fraction of the maxoutput that is used for a block (vs cancelled)
 //  1.0 if no impact, 0 if 100% cancelled
-//  cancel rate is transformed into impact for each zone, modulo redistribution policyImpactFromCancel (y) { 
+//  cancel rate is transformed into impact for each zone, modulo redistribution policy
+ImpactFromCancel (y) { 
     var Result 
     var s_energy  = 0
     var s_cancel  = 0
@@ -1342,13 +1391,15 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method steelConsumption @ Block ------------- 
-//  computes the steel consumption from gdpSteelConsumption (y) { 
+//  computes the steel consumption from gdp
+SteelConsumption (y) { 
     this.ironConsos[y-1]=(this.results[y-1]/this.ironDriver.Get(yearF(y)))
      false
     } 
   
   // ----- class method innerTrade @ Block ------------- 
-//  fraction of gdp that is not linked to external tradeInnerTrade () { 
+//  fraction of gdp that is not linked to external trade
+InnerTrade () { 
     var Result 
     var p  = 1
     for (const g0217 of C_Block.descendants){ 
@@ -1366,7 +1417,8 @@ const kernel = require('./ClaireKernel')
 
 
 // class file for Strategy in module gw1 // 
-//  a strategy is a GTES (game theory) description of the playerclass Strategy extends kernel.ClaireObject{ 
+//  a strategy is a GTES (game theory) description of the player
+class Strategy extends kernel.ClaireObject{ 
    
   constructor() { 
     super()
@@ -1379,7 +1431,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method self_print @ Strategy ------------- 
-//  prints a strategySelfPrint () { 
+//  prints a strategy
+SelfPrint () { 
     kernel.PRINC("strategy(Gdp:")
     kernel.printFDigit_float((this.targetGdp*100),1)
     kernel.PRINC("x")
@@ -1399,7 +1452,8 @@ const kernel = require('./ClaireKernel')
 
 
 // class file for Consumer in module gw1 // 
-//  each bloc is a group of countries (BRIC, USEurope, ...)class Consumer extends kernel.ClaireThing{ 
+//  each bloc is a group of countries (BRIC, USEurope, ...)
+class Consumer extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -1440,7 +1494,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method tactical @ Consumer ------------- 
-//  sets the tactic for a consumerTactical (tStart,tFromPain,tCancel,pStart,tProtect,tTax) { 
+//  sets the tactic for a consumer
+Tactical (tStart,tFromPain,tCancel,pStart,tProtect,tTax) { 
     this.transitionStart = tStart
     this.transitionFromPain = tFromPain
     this.cancelFromPain = tCancel
@@ -1450,7 +1505,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method productivityLoss @ Consumer ------------- 
-//  the loss of productivity is a linear function of the pain levelProductivityLoss (y) { 
+//  the loss of productivity is a linear function of the pain level
+ProductivityLoss (y) { 
     var Result 
     var p  = this.painLevels[y-1]
     Result = (1-(p*this.productivityFactor))
@@ -1458,7 +1514,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method ratio @ Consumer ------------- 
-//  tricky: assign energy needs proportionally ... then add substitution flows Ratio (s) { 
+//  tricky: assign energy needs proportionally ... then add substitution flows 
+Ratio (s) { 
     var Result 
     var i  = s.index
     var arg_1 
@@ -1472,7 +1529,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method transferNeed @ Consumer ------------- 
-//  transfer some energy need from one supplier to the nextTransferNeed (y,tr,q) { 
+//  transfer some energy need from one supplier to the next
+TransferNeed (y,tr,q) { 
     if (tr.from == C_TESTE) { 
       kernel.tformat(">>>> Need transfer of ~F2Gtoe for ~S from ~S to ~S\n",0,[q,
         this,
@@ -1486,7 +1544,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method tax @ Consumer ------------- 
-//  one C for 2 OTax (s,y) { 
+//  one C for 2 O
+Tax (s,y) { 
     if (y <= 2) { 
       return  0
       } else {
@@ -1495,7 +1554,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method truePrice @ Consumer ------------- 
-//  this is what the consumer will pay TruePrice (s,y) { 
+//  this is what the consumer will pay 
+TruePrice (s,y) { 
     return  (s.sellPrices[y-1]+this.Tax(s,y))
     } 
   
@@ -1516,7 +1576,8 @@ const kernel = require('./ClaireKernel')
   // ----- class method getCancel @ Consumer ------------- 
 //  we got rid the "CancelThreat" in version 0.2 to KISS
 //  on the other hand, we had a supplier-sensitive factor to model (for coal !) => mimick price stability which we observe
-//  GW3: added the cancelAcceleration produced by M5 buGetCancel (s,p) { 
+//  GW3: added the cancelAcceleration produced by M5 bu
+GetCancel (s,p) { 
     return  (this.cancel.Get(p)*(1+((s.isa.IsIn(C_FiniteSupplier) == true) ? 
       this.cancelAcceleration :
       0)))
@@ -1524,7 +1585,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method prevSaving @ Consumer ------------- 
 //  savings level at the moment for s  (based on savings level of past year)
-//  note that actual saving is monotonic because we invest and keep saving at the level from the pastPrevSaving (s) { 
+//  note that actual saving is monotonic because we invest and keep saving at the level from the past
+PrevSaving (s) { 
     var Result 
     var y  = C_pb.year
     Result = this.savings[(y-1)-1][s.index-1]
@@ -1532,7 +1594,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method transferRate @ Consumer ------------- 
-//  reads the current transferRateTransferRate (tr,y) { 
+//  reads the current transferRate
+TransferRate (tr,y) { 
     if (y == 0) { 
       return  0
       } else {
@@ -1544,7 +1607,8 @@ const kernel = require('./ClaireKernel')
 //  verbosity for model M3
 //  record the actual savings and substitution - use substitution matrix
 //  each operation may update the Percent because of monotonicity
-//  cancel is deduced from the actual conso to ensure need = conson + savings + cancelRecord (s,y) { 
+//  cancel is deduced from the actual conso to ensure need = conson + savings + cancel
+Record (s,y) { 
     var i  = s.index
     var cneed  = this.needs[y-1][i-1]
     var p  = this.TruePrice(s,y)
@@ -1569,7 +1633,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method cancels @ Consumer ------------- 
 //  registers the energy consumption of c for s
-//  cancellation : registers an energy consumption cancellationCancels (s,y,x) { 
+//  cancellation : registers an energy consumption cancellation
+Cancels (s,y,x) { 
     this.economy.cancels[y-1]=(this.economy.cancels[y-1]+x)
      this.cancel_Z[y-1][s.index-1]=(x/this.needs[y-1][s.index-1])
     } 
@@ -1578,7 +1643,8 @@ const kernel = require('./ClaireKernel')
 //  store production
 //  saves a given amount of energy (always increasing) - hence we return the actual percent
 //  note that it would be nice to add a delay (more than a year)
-//  GW3: c.saving is a policy table that is assumed to be increasingSaves (s,y,w) { 
+//  GW3: c.saving is a policy table that is assumed to be increasing
+Saves (s,y,w) { 
     var i  = s.index
     var cneed  = this.needs[y-1][i-1]
     var ftech  = kernel._exp_float((1-s.techFactor),y)
@@ -1594,14 +1660,16 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method getTransferRate @ Consumer ------------- 
-//  getTransferRate: reads the substitution matrix and multiply by c.transtionFactors[y - 1]GetTransferRate (tr,y) { 
+//  getTransferRate: reads the substitution matrix and multiply by c.transtionFactors[y - 1]
+GetTransferRate (tr,y) { 
     return  (this.transitionFactors[(y-1)-1]*this.subMatrix[tr.index-1].Get(yearF(y)))
     } 
   
   // ----- class method updateRate @ Consumer ------------- 
 //  monotonic update of the transferRate substitute a fraction from one energy source to another
 //  note the monotonic behavior, we return the actual Percentage !
-//  in v0.3 weUpdateRate (s1,tr,y,cneed) { 
+//  in v0.3 we
+UpdateRate (s1,tr,y,cneed) { 
     var i  = tr.index
     var s2  = tr.to
     var ftech  = kernel._exp_float((1-s2.techFactor),y)
@@ -1638,7 +1706,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method eTransferRatio @ Consumer ------------- 
 //  gwdg : when using the static eRatio of 2010, we make an error that we must fix
-//  r1: elecRate of s1, e2: elecRate of s2, h: heatRate of trETransferRatio (s1,s2,h) { 
+//  r1: elecRate of s1, e2: elecRate of s2, h: heatRate of tr
+ETransferRatio (s1,s2,h) { 
     var Result 
     var r1  = (1-s1.heat_Z)
     var r2  = (1-s2.heat_Z)
@@ -1651,7 +1720,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method sumNeeds @ Consumer ------------- 
-//  four utilitiesSumNeeds (y) { 
+//  four utilities
+SumNeeds (y) { 
     var Result 
     var g0226  = 0
     for (const g0227 of this.needs[y-1]){ 
@@ -1701,7 +1771,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method marginReduction @ Consumer ------------- 
-//  computes the margin impact of energy price increase, weighted avertage over energy sourcesMarginReduction (y) { 
+//  computes the margin impact of energy price increase, weighted avertage over energy sources
+MarginReduction (y) { 
     var Result 
     var s_energy  = 0
     var margin_impact  = 0
@@ -1727,7 +1798,8 @@ const kernel = require('./ClaireKernel')
 //  note: the techfactor is only applied to energy, because the model does not account for other resources
 //  (water, metals, ...). The assumption is that adding more control loops (with duality of finite resources 
 //   and recycling / savings with tech) would simply add complexity.      
-//  computes the cancel ratio for one zoneCancelRatio (y) { 
+//  computes the cancel ratio for one zone
+CancelRatio (y) { 
     var Result 
     var conso  = this.economy.totalConsos[y-1]
     var cancel  = this.economy.cancels[y-1]
@@ -1736,7 +1808,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method redirection @ Consumer ------------- 
-//  max transition acceleration compared to best planRedirection (y,pain) { 
+//  max transition acceleration compared to best plan
+Redirection (y,pain) { 
     this.satisfactions[y-1]=this.ComputeSatisfaction(y)
     this.taxAcceleration = ((5000*this.taxFromPain)*pain)
     this.cancelAcceleration = (this.cancelFromPain*pain)
@@ -1749,7 +1822,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method taxRate @ Consumer ------------- 
 //  carbon tax rate for a consumer : divide the money by the fossil fuel consumption
-//  return $ / GtepTaxRate (y) { 
+//  return $ / Gtep
+TaxRate (y) { 
     var Result 
     var t  = this.carbonTaxes[y-1]
     if (t > 0) { 
@@ -1774,7 +1848,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method painFromCancel @ Consumer ------------- 
-//  level of pain derived from cancelRatePainFromCancel (y) { 
+//  level of pain derived from cancelRate
+PainFromCancel (y) { 
     var Result 
     var cr  = this.CancelRatio(y)
     var pain  = C_pb.earth.painCancel.Get(cr)
@@ -1787,7 +1862,8 @@ const kernel = require('./ClaireKernel')
 //  level of pain derived from cancelRate
 //  notes: 
 //    - redistriction policy only applies to energy - because of the "one world economy" assumption
-//    - we should factor in the PainFromResults (y) { 
+//    - we should factor in the 
+PainFromResults (y) { 
     var Result 
     var w  = C_pb.world.all
     var r1  = w.results[(y-1)-1]
@@ -1800,7 +1876,8 @@ const kernel = require('./ClaireKernel')
   
   // ----- class method computeSatisfaction @ Consumer ------------- 
 //  computes the satisfaction level of a consumer versus its objective
-//  we estimate the 2100 value for GDP, CO2 and pain with a linear interpolationComputeSatisfaction (y) { 
+//  we estimate the 2100 value for GDP, CO2 and pain with a linear interpolation
+ComputeSatisfaction (y) { 
     var Result 
     var strat  = this.objective
     var gdpTarget  = (this.economy.results[0]*kernel._exp_float((1+strat.targetGdp),(y-1)))
@@ -1817,7 +1894,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method allNeed @ Consumer ------------- 
-//  combine for all suppliers  (used in hist(c:Consumer))AllNeed (y) { 
+//  combine for all suppliers  (used in hist(c:Consumer))
+AllNeed (y) { 
     var Result 
     var g0245  = 0
     for (const g0246 of this.needs[y-1]){ 
@@ -1855,12 +1933,14 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method savingRatio @ Consumer ------------- 
-//  saving ratiosSavingRatio (y) { 
+//  saving ratios
+SavingRatio (y) { 
     return  (this.SumSavings(y)/this.SumNeeds(y))
     } 
   
   // ----- class method energyIntensity @ Consumer ------------- 
-//  same for a zoneEnergyIntensity (y) { 
+//  same for a zone
+EnergyIntensity (y) { 
     return  (TWh(this.SumConsos(y))/(1000*this.economy.results[y-1]))
     } 
   
@@ -1877,7 +1957,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method init @ Consumer ------------- 
-//  consumer initialization (and reinit)Init () { 
+//  consumer initialization (and reinit)
+Init () { 
     { 
       var va_arg2 
       var s_bag  = []
@@ -2168,7 +2249,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method eRatio @ Consumer ------------- 
-//  reads form the initial data the ratio of primary energy used for electricity (vs "heat")ERatio (s) { 
+//  reads form the initial data the ratio of primary energy used for electricity (vs "heat")
+ERatio (s) { 
     return  (this.eSources[s.index-1]/this.consumes[s.index-1])
     } 
   
@@ -2224,7 +2306,8 @@ const kernel = require('./ClaireKernel')
 
 // class file for WorldClass in module gw1 // 
 //  book-keeping the loss of margin -> impact Invest
-//  we create World as the global economy (sum of block)class WorldClass extends kernel.ClaireThing{ 
+//  we create World as the global economy (sum of block)
+class WorldClass extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -2241,7 +2324,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method reinit @ WorldClass ------------- 
-//  reinit version (refresh data)   Reinit (e,c) { 
+//  reinit version (refresh data)   
+Reinit (e,c) { 
     if (C_pb.earth != null) { 
        reinit_void()
       } else {
@@ -2256,7 +2340,8 @@ const kernel = require('./ClaireKernel')
 //  ********************************************************************
 //  *    Part 4: Gaia                                                  *
 //  ********************************************************************
-//  there is only one earth :)class Earth extends kernel.ClaireThing{ 
+//  there is only one earth :)
+class Earth extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -2275,7 +2360,8 @@ const kernel = require('./ClaireKernel')
   // ----- class method react @ Earth ------------- 
 //  verbosity for model M5
 //  even simpler : computes the CO2 and the temperature,
-//  then (M5) apply the pain to re-evaluate the reactionsReact (y) { 
+//  then (M5) apply the pain to re-evaluate the reactions
+React (y) { 
     var x  = this.co2Levels[(y-1)-1]
     this.co2Levels[y-1]=(x+(this.co2Emissions[y-1]*this.co2Ratio))
     
@@ -2380,7 +2466,8 @@ const kernel = require('./ClaireKernel')
 //  ********************************************************************
 //  *    Part 5: Experiments                                           *
 //  ********************************************************************
-//  our problem solver objectclass Problem extends kernel.ClaireThing{ 
+//  our problem solver object
+class Problem extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -2403,7 +2490,8 @@ const kernel = require('./ClaireKernel')
 //   (a) there is an intersection -> find the price
 //   (b) production is much higher -> satisfy the demand at lowest price
 //   (c) production is too small -> prices should go higher
-//  currently: raise an error in case (c)Solve (s) { 
+//  currently: raise an error in case (c)
+Solve (s) { 
     var Result 
     var v0  = 1e+10
     var p0  = 0
@@ -2493,7 +2581,8 @@ const kernel = require('./ClaireKernel')
     } 
   
   // ----- class method run @ Problem ------------- 
-//  one simulation stepRun () { 
+//  one simulation step
+Run () { 
     var y  = (this.year+1)
     C_pb.year = y
     kernel.tformat("==================================  [~A] =================================== \n",2,[year_I(y)])
@@ -2653,7 +2742,8 @@ var C_gw1_Gaia
 
 // ----- function from method year! @ integer ------------- 
 //  energy is in PWh
-//  we use a relative index that sarts at 1 for 2010function year_I (i) { 
+//  we use a relative index that sarts at 1 for 2010
+function year_I (i) { 
   return  (2009+i)
   } 
 
@@ -2663,17 +2753,20 @@ function yearF (i) {
   } 
 
 // ----- function from method PWh @ float ------------- 
-//  transforms a Gt of oil equivalent into PWhfunction PWh (x) { 
+//  transforms a Gt of oil equivalent into PWh
+function PWh (x) { 
   return  (x*11.6)
   } 
 
 // ----- function from method perMWh @ float ------------- 
-//  transforms a price per Tep into a price per MWhfunction perMWh (x) { 
+//  transforms a price per Tep into a price per MWh
+function perMWh (x) { 
   return  (x/11.6)
   } 
 
 // ----- function from method affine @ listargs ------------- 
-//  assumes l is a list of pairs (x-i,y-i) and x-i is a strictly increasing sequencefunction affine (l) { 
+//  assumes l is a list of pairs (x-i,y-i) and x-i is a strictly increasing sequence
+function affine (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
@@ -2726,7 +2819,8 @@ function yearF (i) {
   } 
 
 // ----- function from method step @ listargs ------------- 
-//  same code for StepFunctionfunction step (l) { 
+//  same code for StepFunction
+function step (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
@@ -2780,7 +2874,8 @@ function yearF (i) {
 
 // ----- function from method supplier! @ integer ------------- 
 //  max(delta(capacity) in PWh) is a yearly roadmap (does not only depend on price but volume effects)
-//  access to a supplier from its index - ugly but faster than "exists(s in Supplier ...)"function supplier_I (i) { 
+//  access to a supplier from its index - ugly but faster than "exists(s in Supplier ...)"
+function supplier_I (i) { 
   var Result 
   var n  = kernel.size_class(C_FiniteSupplier)
   Result = ((i <= n) ? 
@@ -2790,7 +2885,8 @@ function yearF (i) {
   } 
 
 // ----- function from method makeTransition @ string ------------- 
-//  create a transition (used in test.cl)function makeTransition (name,fromIndex,toIndex,h_Z) { 
+//  create a transition (used in test.cl)
+function makeTransition (name,fromIndex,toIndex,h_Z) { 
   var tr 
   var _CL_obj  = (new Transition()).Is(C_Transition)
   _CL_obj.index = (1+C_pb.transitions.length)
@@ -2805,18 +2901,21 @@ function yearF (i) {
   } 
 
 // ----- function from method EJ @ float ------------- 
-//  tranforms a Gt of oil equivalent into EJ (Exa Joule)function EJ (x) { 
+//  tranforms a Gt of oil equivalent into EJ (Exa Joule)
+function EJ (x) { 
   return  (x*41.86)
   } 
 
 // ----- function from method TWh @ float ------------- 
-//  transforms a Gt of oil equivalent into TWh (Tera Watt Hour)function TWh (x) { 
+//  transforms a Gt of oil equivalent into TWh (Tera Watt Hour)
+function TWh (x) { 
   return  (x*11630)
   } 
 
 // ----- function from method C @ integer ------------- 
 //  record level of satisfaction for each year
-//  find a consumer by its indexfunction C (i) { 
+//  find a consumer by its index
+function C (i) { 
   var Result 
   var c_some  = null
   for (const g0497 of C_Consumer.descendants){ 
@@ -2839,7 +2938,8 @@ function yearF (i) {
   } 
 
 // ----- function from method strategy @ float ------------- 
-//  constructor for Strategyfunction strategy (tGdp,tCO2,tHappy,wGDP,wCO2) { 
+//  constructor for Strategy
+function strategy (tGdp,tCO2,tHappy,wGDP,wCO2) { 
   var Result 
   var _CL_obj  = (new Strategy()).Is(C_Strategy)
   _CL_obj.targetGdp = tGdp
@@ -2854,7 +2954,8 @@ function yearF (i) {
 
 // ----- function from method fP @ float ------------- 
 //  easier for step-wise functions :)
-//  print a float in fixed number of characters -------------------------------function fP (x,i) { 
+//  print a float in fixed number of characters -------------------------------
+function fP (x,i) { 
   if (x < 0) { 
     kernel.PRINC("-")
     fP((-x),(i-1))
@@ -2870,7 +2971,8 @@ function yearF (i) {
   } 
 
 // ----- function from method sum @ list ------------- 
-//  our sum macro  function sum (l) { 
+//  our sum macro  
+function sum (l) { 
   var Result 
   var x  = 0
   for (const y of l){ 
@@ -2881,7 +2983,8 @@ function yearF (i) {
   } 
 
 // ----- function from method average @ list ------------- 
-//  averagefunction average (l) { 
+//  average
+function average (l) { 
   var Result 
   var arg_1 
   var g0499  = 0
@@ -2894,7 +2997,8 @@ function yearF (i) {
   } 
 
 // ----- function from method float! @ float ------------- 
-//  makes float! a coercion (works both for integer and float)function float_I_float (x) { 
+//  makes float! a coercion (works both for integer and float)
+function float_I_float (x) { 
   return  x
   } 
 
@@ -2905,7 +3009,8 @@ function yearF (i) {
 //            (b) memory: "dampening factor"
 //  note the "need" does not take savings into account since they'll be added
 //  Note: pop  growth comes from Emerging countries => mostly linear (KISS)
-//  GW4: the need are now localized (c.population & c.gdp)function getNeed_Consumer1 (c,y) { 
+//  GW4: the need are now localized (c.population & c.gdp)
+function getNeed_Consumer1 (c,y) { 
   var b  = c.economy
   var c0 
   var g0501  = 0
@@ -2959,7 +3064,8 @@ function yearF (i) {
 
 // ----- function from method exportReductionRatio @ list<type_expression>(Block, integer) ------------- 
 //  previous methods the total outerCommerce = growth (1 - exportReductionRatio)
-//  this methods returns only the export reductionfunction exportReductionRatio_Block1 (w,y) { 
+//  this methods returns only the export reduction
+function exportReductionRatio_Block1 (w,y) { 
   var Result 
   var g0504  = 0
   for (const g0507 of C_Block.descendants){ 
@@ -2975,12 +3081,14 @@ function yearF (i) {
   } 
 
 // ----- function from method exportReductionRatio @ list<type_expression>(Block, Block, integer) ------------- 
-//  reduction of exportation factor (w -> w2) because of w2 CBAM - always negativefunction exportReductionRatio_Block2 (w,w2,y) { 
+//  reduction of exportation factor (w -> w2) because of w2 CBAM - always negative
+function exportReductionRatio_Block2 (w,w2,y) { 
   return  kernel.min_float(0,((w2.openTrade[w.Index()-1]-1)*C_pb.world.protectionismOutFactor))
   } 
 
 // ----- function from method importReductionRatio @ list<type_expression>(Block, integer) ------------- 
-//  opposite situation : w is impacted by imports from w2, because of its own barrier or because w2 is doing poorlyfunction importReductionRatio_Block1 (w,y) { 
+//  opposite situation : w is impacted by imports from w2, because of its own barrier or because w2 is doing poorly
+function importReductionRatio_Block1 (w,y) { 
   var Result 
   var g0508  = 0
   for (const g0511 of C_Block.descendants){ 
@@ -2996,14 +3104,16 @@ function yearF (i) {
   } 
 
 // ----- function from method importReductionRatio @ list<type_expression>(Block, Block, integer) ------------- 
-//  reduction of importation factor (w2 -> w:import): this is a negative correction when openTrade is less than 1.0function importReductionRatio_Block2 (w,w2,y) { 
+//  reduction of importation factor (w2 -> w:import): this is a negative correction when openTrade is less than 1.0
+function importReductionRatio_Block2 (w,w2,y) { 
   return  kernel.min_float(0,((w.openTrade[w2.Index()-1]-1)*C_pb.world.protectionismInFactor))
   } 
 
 // ----- function from method getNeed @ list<type_expression>(Consumer, Supplier, integer) ------------- 
 //  computes the need - Step 2 - for one precise supplier
 //  (a) relative needs for + current Carbon tax (the carbon shifts the demand curve)
-//  (b) record the qty that would be bought for a list of pricefunction getNeed_Consumer2 (c,s,y) { 
+//  (b) record the qty that would be bought for a list of price
+function getNeed_Consumer2 (c,s,y) { 
   var t  = c.Tax(s,y)
   
   var p  = 1
@@ -3016,7 +3126,8 @@ function yearF (i) {
 
 // ----- function from method consumes @ list<type_expression>(Consumer, Supplier, integer, float) ------------- 
 //  record all savings
-//  consumes : register the CO2 and register the energyfunction consumes_Consumer2 (c,s,y,x) { 
+//  consumes : register the CO2 and register the energy
+function consumes_Consumer2 (c,s,y,x) { 
   if (s == C_TESTE) { 
     kernel.tformat("[~A] ~S consumes ~F2 of ~S [need = ~F2 reduced-> ~F2] \n",1,[year_I(y),
       c,
@@ -3043,7 +3154,8 @@ function yearF (i) {
   } 
 
 // ----- function from method steelFactor @ list<type_expression>(Supplier, integer) ------------- 
-//  part of the cost of new energy is linked to the cost of steelfunction steelFactor_Supplier2 (s,y) { 
+//  part of the cost of new energy is linked to the cost of steel
+function steelFactor_Supplier2 (s,y) { 
   var Result 
   var pf  = s.steelFactor
   Result = ((1-pf)+(pf*(C_pb.world.steelPrices[(y-1)-1]/C_pb.world.steelPrices[0])))
@@ -3053,7 +3165,8 @@ function yearF (i) {
 // ----- function from method checkBalance @ list<type_expression>(Consumer, integer) ------------- 
 //  verbosity for model M4
 //  debug function: show the energy balance of a consumer (need -> conso + savings + cancel)
-//  we keep it for the time being to avoid new bugs ...function checkBalance_Consumer1 (c,y) { 
+//  we keep it for the time being to avoid new bugs ...
+function checkBalance_Consumer1 (c,y) { 
   var c1  = c.SumNeeds(y)
   var c2  = c.SumConsos(y)
   var c3  = c.SumCancels(y)
@@ -3077,7 +3190,8 @@ function yearF (i) {
   } 
 
 // ----- function from method checkBalance @ list<type_expression>(Consumer, Supplier, integer) ------------- 
-//  more precise debug function: balance for a consumer and a supplierfunction checkBalance_Consumer2 (c,s,y) { 
+//  more precise debug function: balance for a consumer and a supplier
+function checkBalance_Consumer2 (c,s,y) { 
   var c1  = c.needs[y-1][s.index-1]
   var c2  = c.consos[y-1][s.index-1]
   var c3  = (c.needs[y-1][s.index-1]*c.cancel_Z[y-1][s.index-1])
@@ -3087,7 +3201,8 @@ function yearF (i) {
   } 
 
 // ----- function from method getEconomy @ integer ------------- 
-//  computes the economy for a given year -> 4 blocs then consolidatefunction getEconomy (y) { 
+//  computes the economy for a given year -> 4 blocs then consolidate
+function getEconomy (y) { 
   for (const g0514 of C_Block.descendants){ 
     for (const b of g0514.instances){ 
       checkBalance_Consumer1(b.describes,y)
@@ -3129,14 +3244,16 @@ function yearF (i) {
   } 
 
 // ----- function from method steelPrice @ integer ------------- 
-//  computes the steel price function steelPrice_integer (y) { 
+//  computes the steel price 
+function steelPrice_integer (y) { 
   var w  = C_pb.world
   w.steelPrices[y-1]=((w.steelPrice*(avgOilEquivalent(y)/avgOilEquivalent(1)))*(w.energy4steel.Get(yearF(y))/w.energy4steel.Get(yearF(1))))
   } 
 
 // ----- function from method computeProtectionism @ integer ------------- 
 //  once the "alpha" factors have been set, we compute the protectionism level ()
-//  note that we protect based on the difference between co2/GDP and the existance of a similar level of CO2 taxfunction computeProtectionism (y) { 
+//  note that we protect based on the difference between co2/GDP and the existance of a similar level of CO2 tax
+function computeProtectionism (y) { 
   var w  = C_pb.world
   for (const g0544 of C_Consumer.descendants){ 
     for (const c1 of g0544.instances){ 
@@ -3185,7 +3302,8 @@ function yearF (i) {
   } 
 
 // ----- function from method agroOutput @ integer ------------- 
-//  trabnsform m2/MWh into millionskm2/Gtepfunction agroOutput (y) { 
+//  trabnsform m2/MWh into millionskm2/Gtep
+function agroOutput (y) { 
   var w  = C_pb.world
   var e  = C_pb.earth
   var newClean  = ((0 <= (C_pb.clean.capacities[y-1]-C_pb.clean.capacities[(y-1)-1])) ? 
@@ -3200,7 +3318,8 @@ function yearF (i) {
   } 
 
 // ----- function from method avgOilEquivalent @ integer ------------- 
-//  avgOilEquivalent(y) is the equivalent oil price for each energy source weighted by productionfunction avgOilEquivalent (y) { 
+//  avgOilEquivalent(y) is the equivalent oil price for each energy source weighted by production
+function avgOilEquivalent (y) { 
   var Result 
   var p  = 0
   var o  = 0
@@ -3215,7 +3334,8 @@ function yearF (i) {
   } 
 
 // ----- function from method printEnergyPrices @ integer ------------- 
-//  show the pricesfunction printEnergyPrices (y) { 
+//  show the prices
+function printEnergyPrices (y) { 
   for (const g0551 of C_Supplier.descendants){ 
     for (const s of g0551.instances){ 
       kernel.print_any(s)
@@ -3227,7 +3347,8 @@ function yearF (i) {
   } 
 
 // ----- function from method priceSample @ list ------------- 
-//  sample makes an affine object from the prod/need curves - x axis is price incrementfunction priceSample (l) { 
+//  sample makes an affine object from the prod/need curves - x axis is price increment
+function priceSample (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
@@ -3259,7 +3380,8 @@ function yearF (i) {
   } 
 
 // ----- function from method timeSample @ list ------------- 
-//  same with a time serie - x axis is yearsfunction timeSample (l) { 
+//  same with a time serie - x axis is years
+function timeSample (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
@@ -3293,7 +3415,8 @@ function yearF (i) {
 
 // ----- function from method add_years @ integer ------------- 
 //  CRAZY CLAIRE BUG: if this method is called add, the code cannot be printed
-//  add n years of simulationsfunction add_years (n) { 
+//  add n years of simulations
+function add_years (n) { 
   kernel.time_set()
   var i  = 1
   var g0554  = n
@@ -3348,7 +3471,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method co2KWh @ integer ------------- 
-//  computes the co2KWh ratio for each yearfunction co2KWh (y) { 
+//  computes the co2KWh ratio for each year
+function co2KWh (y) { 
   var Result 
   var arg_1 
   var g0575  = 0
@@ -3373,17 +3497,20 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method energyIntensity @ integer ------------- 
-//  computes the energy intensity (kW.h/$) for each yearfunction energyIntensity_integer (y) { 
+//  computes the energy intensity (kW.h/$) for each year
+function energyIntensity_integer (y) { 
   return  (TWh(C_pb.world.all.totalConsos[y-1])/(1000*C_pb.world.all.results[y-1]))
   } 
 
 // ----- function from method gdpp @ integer ------------- 
-//  compute the GDP/personfunction gdpp (y) { 
+//  compute the GDP/person
+function gdpp (y) { 
   return  (C_pb.world.all.results[y-1]/worldPopulation(y))
   } 
 
 // ----- function from method averagePain @ integer ------------- 
-//  averagePainfunction averagePain (y) { 
+//  averagePain
+function averagePain (y) { 
   var Result 
   var arg_1 
   var g0591  = 0
@@ -3399,7 +3526,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method averageEnergyPain @ integer ------------- 
-//  averagePain from (lack of) energyfunction averageEnergyPain (y) { 
+//  averagePain from (lack of) energy
+function averageEnergyPain (y) { 
   var Result 
   var arg_1 
   var g0595  = 0
@@ -3415,7 +3543,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method averageEconomyPain @ integer ------------- 
-//  averagePain from Economy (loss of PNB)function averageEconomyPain (y) { 
+//  averagePain from Economy (loss of PNB)
+function averageEconomyPain (y) { 
   var Result 
   var arg_1 
   var g0599  = 0
@@ -3431,7 +3560,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method averageWarmingPain @ integer ------------- 
-//  averagePain from warmingfunction averageWarmingPain (y) { 
+//  averagePain from warming
+function averageWarmingPain (y) { 
   var Result 
   var arg_1 
   var g0603  = 0
@@ -3450,7 +3580,8 @@ function carbonTax_integer (y) {
 //  ********************************************************************
 //  *    Part 2: Simulation & Results                                  *
 //  ********************************************************************
-//  see() shows the situation for a given yearfunction see_void () { 
+//  see() shows the situation for a given year
+function see_void () { 
   kernel.PRINC("************************************************************************************\n")
   kernel.PRINC("*          Simulation results in Year ")
   kernel.princ_integer(year_I(C_pb.year))
@@ -3480,7 +3611,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method sls @ void ------------- 
-//  single line summaryfunction sls () { 
+//  single line summary
+function sls () { 
   var w  = C_pb.world.all
   var y  = C_pb.year
   kernel.PRINC("// ")
@@ -3514,7 +3646,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method pl2 @ list ------------- 
-//  prints a list of float with F2function pl2 (l) { 
+//  prints a list of float with F2
+function pl2 (l) { 
   for (const x of l){ 
     kernel.printFDigit_float(x,2)
     kernel.PRINC(" ")
@@ -3522,7 +3655,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method worldPopulation @ integer ------------- 
-//  worldwide populationfunction worldPopulation (y) { 
+//  worldwide population
+function worldPopulation (y) { 
   var Result 
   var g0618  = 0
   for (const g0621 of C_Consumer.descendants){ 
@@ -3540,7 +3674,8 @@ function carbonTax_integer (y) {
 //  *    Part 3: Experiments                                           *
 //  ********************************************************************
 //  initialize all the simulation objects
-//  we want the time series *s[y]function init_WorldClass1 (w,e,c) { 
+//  we want the time series *s[y]
+function init_WorldClass1 (w,e,c) { 
   C_pb.world = w
   C_pb.earth = C_Earth.instances[0]
   C_pb.oil = e
@@ -3597,7 +3732,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method reinit @ void ------------- 
-//  reusable part (reinit)function reinit_void () { 
+//  reusable part (reinit)
+function reinit_void () { 
   C_pb.year = 1
   init_WorldClass4(C_pb.world)
   C_pb.earth.Init()
@@ -3616,7 +3752,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method init @ list<type_expression>(WorldClass) ------------- 
-//  init for the world economyfunction init_WorldClass4 (w) { 
+//  init for the world economy
+function init_WorldClass4 (w) { 
   { 
     var va_arg2 
     var _CL_obj  = (new Economy()).Is(C_Economy)
@@ -3693,7 +3830,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method consolidate @ void ------------- 
-//  consolidation of the world economy : init versionfunction consolidate_void () { 
+//  consolidation of the world economy : init version
+function consolidate_void () { 
   var e  = C_pb.world.all
   { 
     var va_arg2 
@@ -3737,7 +3875,8 @@ function carbonTax_integer (y) {
 //  ********************************************************************
 //  *    Part 4: Utility functions for input                           *
 //  ********************************************************************
-//  accelerate : change the date to accelerate a policy (pivot is 2000)function accelerate_list (policy,factor) { 
+//  accelerate : change the date to accelerate a policy (pivot is 2000)
+function accelerate_list (policy,factor) { 
   var Result 
   var v_list1 
   var p 
@@ -3753,7 +3892,8 @@ function carbonTax_integer (y) {
   } 
 
 // ----- function from method tune @ list ------------- 
-//  tune a policy by changing one substitutionfunction tune (policy,from,to,line) { 
+//  tune a policy by changing one substitution
+function tune (policy,from,to,line) { 
   var Result 
   var tr  = from.GetTransition(to)
   var n  = policy.length
@@ -3772,7 +3912,8 @@ function carbonTax_integer (y) {
 
 // ----- function from method balanceOfTrade @ list ------------- 
 //  create a trade matrix
-//  inputs are export flows in billions of dollars, gdp in in trillons of dollarsfunction balanceOfTrade (l) { 
+//  inputs are export flows in billions of dollars, gdp in in trillons of dollars
+function balanceOfTrade (l) { 
   var Result 
   var c_bag  = []
   for (const g0657 of C_Consumer.descendants){ 
@@ -3797,13 +3938,15 @@ function carbonTax_integer (y) {
 //  ********************************************************************
 //  *    Part 4: Launch (go(n))                                        *
 //  ********************************************************************
-//  do n years of simulationfunction go (n) { 
+//  do n years of simulation
+function go (n) { 
   init_WorldClass1(C_World,C_Oil,C_Clean)
    add_years(n)
   } 
 
 // ----- function from method jsmain @ void ------------- 
-//  what we launch by default with jsfunction jsmain () { 
+//  what we launch by default with js
+function jsmain () { 
   kernel.ClEnv.verbose = 0
    go(90)
   } 
