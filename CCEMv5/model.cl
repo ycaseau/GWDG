@@ -1,6 +1,6 @@
 // ********************************************************************
 // *       GWDG: Global Warming Dynamic Games                         *
-// *       copyright (C) 2009-2023 Yves Caseau                        *
+// *       copyright (C) 2009-2024 Yves Caseau                        *
 // *       file: model.cl                                             *
 // ********************************************************************
 
@@ -23,7 +23,7 @@ DEBUG:integer :: 5
 Version:float :: 0.5            // started on February 1st, 2024
 NIT:integer :: 200              // number of years
 NIS:integer :: 1000              // number of price sample points
-PMIN:integer :: 4               // min price for a MWh (to be tuned)
+PMIN:integer :: 4                // min price for a MWh (to be tuned)
 PMAX:integer :: 860              // max price for a  MWh (to be tuned)
 
 Year :: integer                 // time is in year (1 .. Max)
@@ -101,7 +101,7 @@ Supplier <: thing(
     investPrice:Price,            // price in T$ to add one GToe per year capaciy
     co2Factor:Percent,            // mass of carbon in one Tep of this energy
     co2Kwh:float,                 // carbonization of this energy (ratio used in Shapes)
-    from:list<Transition>,        // transition that moves to this energy
+    from:list<Transition>,        // transition that moves from this energy
     steelFactor:Percent,          // part of steel cost in investPrice
     heat%:Percent,                // part of the energy that is used for direct heat vs electricty
     horizonFactor:Percent = 110%, // where we want the capacity to be versus market needs
@@ -163,7 +163,7 @@ Transition <: object(
 
 // tranforms a Gt of oil equivalent into EJ (Exa Joule)
 [EJ(x:float) : float
-  -> x * 41.86 ]
+  -> (x / 11.6) * 41.86 ]
   
 // transforms a Gt of oil equivalent into TWh (Tera Watt Hour)
 [TWh(x:float) : float
@@ -212,7 +212,9 @@ Consumer  <: thing(
     // simulation data ------------------------------------------------------------------------------
     startNeeds:list<Energy>,            // original needs
     needs:list<list<Energy>>,           // depends on the economy (N - 1)
+    needs1:list<list<Energy>>,           // depends on the economy (N - 1)  // debug
     consos:list<list<Energy>>,          // quantity that is consumed per type
+    sellPrices:list<list<Price>>,       // book-keeping : price with carbon tax
     ePWhs:list<Energy>,                 // quantity of electricity that is produced 
     eDeltas:list<Energy>,               // delta of electricity production (debug)
     co2Emissions:list<float>,           // CO2 emissions

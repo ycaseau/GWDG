@@ -166,20 +166,21 @@ RWSaving :: affine(list(2010,0),list(2020,6%),list(2030,10%),list(2050,15%),list
 // (service economy produces more GDP per toe) and inflation, since our model measures GDP in current $
 // this vector is adjusted to follow the observed trajectory of energy density
 // This is KNU2 : CAGR between 1990 and 2022 is -1.4%
-USDemat :: affine(list(2010,0),list(2020,22%),list(2030,35%),list(2050,50%),list(2100,55%))
-EUDemat :: affine(list(2010,0),list(2020,10%),list(2030,25%),list(2050,45%),list(2100,50%))
-CNDemat :: affine(list(2010,0),list(2020,28%),list(2030,35%),list(2050,45%),list(2100,50%))
-RWDemat :: affine(list(2010,0),list(2020,7%),list(2030,14%),list(2050,30%),list(2100,30%))
+// here we suppose approx 1% from 2020 to 2050 and 0.5% from 2050 to 2100
+USDemat :: affine(list(2010,0),list(2020,22%),list(2030,35%),list(2050,48%),list(2100,60%))
+EUDemat :: affine(list(2010,0),list(2020,10%),list(2030,25%),list(2050,40%),list(2100,55%))
+CNDemat :: affine(list(2010,0),list(2020,28%),list(2030,35%),list(2050,45%),list(2100,60%))
+RWDemat :: affine(list(2010,0),list(2020,7%),list(2030,14%),list(2050,30%),list(2100,50%))
 
 // we define here four cancellation vectors
 // KNU3 = long-term elasticity
 // 69 to 138 = +100% increase in price 
 // elasticity -0.3 means 30% less consumption
 // reeds reference says -0.05 short term, -0.3 long term
-UScancel :: affine(list(35.3,0.0),list(69.0,0.05),list(138.0,0.34),list(276.0,0.54),list(520.0,0.8),list(860.0,1.0))
+UScancel :: affine(list(35.3,0.0),list(69.0,0.05),list(138.0,0.34),list(276.0,0.54),list(520.0,0.7),list(860.0,0.99))
 EUcancel :: UScancel
-CNcancel :: affine(list(35.3,0.0),list(69.0,0.3),list(138.0,0.6),list(276.0,0.7),list(520.0,0.9),list(860.0,1.0))
-RestCancel :: affine(list(35.3,0.0),list(69.0,0.15),list(138.0,0.45),list(276.0,0.6),list(520.0,0.9),list(860.0,1.0))
+CNcancel :: affine(list(35.3,0.0),list(69.0,0.3),list(138.0,0.5),list(276.0,0.7),list(520.0,0.8),list(860.0,0.99))
+RestCancel :: affine(list(35.3,0.0),list(69.0,0.15),list(138.0,0.45),list(276.0,0.6),list(520.0,0.9),list(860.0,0.99))
 
 // Last, we use a common profile for economic impact of cancellation (pending more detailed sources)
 // it should also be tuned for each block / there should be a parallel with margin impact

@@ -28,7 +28,7 @@ YTALK:integer :: 1000
        (pb.year := y,
         //[2] ==================================  [~A] =================================== // year!(y),
         if (y = YTALK | y = YSTOP) (DEBUG := 1, SHOW2 := 1),
-        for c in Consumer getNeed(c,y),             // M2: overall need (all energies)
+        for c in Consumer getNeed(c,y),             // M2: overall need (all energies) - transfer levels set at y - 1
         for s in Supplier
            (//[SHOW2] ********* energy ~S : ~F2 PWh ********************************************* // s,sum(list{c.needs[y][s.index] | c in Consumer}),
             getProd(s,p.year),                      // M1: set first vector = supply
@@ -42,7 +42,7 @@ YTALK:integer :: 1000
         //[SHOW4] ========== move to world economy (input = ~F2 PWh) ================ // sum(list{b.inputs[y] | b in Block}),
         getEconomy(y),                                  // M4: economy
         if (verbose() > 0)
-         printf("[~A] gdp = ~F2T$ from ~F2 energy at ~I\n",year!(y), pb.world.all.results[y], pb.world.all.inputs[y],
+         printf("[~A] gdp = ~F2T$ from ~F2PWh input at ~I\n",year!(y), pb.world.all.results[y], pb.world.all.inputs[y],
                 printEnergyPrices(y)),
         react(p.earth,y),                                    // M5: CO2 + carbon tax
         if (y = YSTOP) error("stop at YSTOP")) ]
@@ -169,7 +169,7 @@ YTALK:integer :: 1000
 // single line summary
 [sls()
   -> let w := pb.world.all, y := pb.year in
-      printf("// ~I PNB: ~F1T$, ~F1PWh -> ~F1ppm CO2, ~F1C, ~F1PWh clean, ~F% electricity\n",princ(pb.comment,4),
+      printf("// ~I PNB: ~F1T$, ~F1PWh -> ~F1ppm CO2, ~F1C, ~F1PWh clean, ~F% electricity\n",princ(pb.comment,5),
              w.results[y],w.totalConsos[y],pb.earth.co2Levels[y],
              pb.earth.temperatures[y],pb.clean.outputs[y],
              sum(list{c.ePWhs[y] | c in Consumer})  / w.totalConsos[y])]     
@@ -271,8 +271,10 @@ YTALK:integer :: 1000
                                    s in Supplier },
      c.needs := list<list<Energy>>{ list<Energy>() | i in (1 .. NIT)},
      c.needs[1] := c.consumes,
+     c.needs1 := list<list<Energy>>{ list<Energy>() | i in (1 .. NIT)},
      c.consos := list<list<Energy>>{list<Energy>{0.0 | s in Supplier} | i in (1 .. NIT)},
      c.consos[1] := c.consumes,
+     c.sellPrices := list<list<Price>>{list<Price>{0.0 | s in Supplier} | i in (1 .. NIT)},
      c.cancel% := list<list<Percent>>{list<Percent>{0.0 | s in Supplier} | i in (1 .. NIT)},
      c.savings := list<list<Energy>>{list<Energy>{0.0 | s in Supplier} | i in (1 .. NIT)},
      c.substitutions := list<list<Energy>>{list<Energy>{0.0 | tr in pb.transitions} | i in (1 .. NIT)},
@@ -390,6 +392,21 @@ YTALK:integer :: 1000
             minValue = p.minValue * (1 + factor), 
             maxValue = p.maxValue * (1 + factor),
             xValues = p.xValues) ]
+
+// improve% : modify the factors without changing the dates
+// special form so that % stays a percent
+[improve%(x:Percent,factor:Percent) : Percent
+  -> assert(factor <= 1.0),
+     if (factor > 0.0) x + factor * (1.0 - x)
+     else x + factor * x ]
+
+[improve%(p:Affine, factor:Percent) : Affine
+  -> Affine(n = p.n, 
+            yValues = list<float>{ improve%(p.yValues[i], factor) | i in (1 .. p.n)}, 
+            minValue = improve%(p.minValue, factor), 
+            maxValue = improve%(p.maxValue, factor),
+            xValues = p.xValues) ]
+
 
 // tune a policy by changing one substitution
 [tune(policy:list<Affine>,from:Supplier,to:Supplier,line:Affine) : list<Affine>

@@ -912,60 +912,91 @@ added a feedback loop : pain to production (ratio = productivityFactor, zone dep
           - importReductionRatio   -> used both for need & maxout->gdp
           - exportReductionRatio
       The impact on energy has been computed already :)
-
-
-    - TODO : check the impact on China  (export impact)
-    
-
-
-// TODO
-   - move to compiled code
-   - implement a table : sample the tactic and prints the satisfaction
+    - symetrical formula : works on China exports
+    NOTE: when we play with GTES, we need to add an import based on retaliation, not CO2
+         => X apply the same rate for (Y -> X) than Y CBAM for (X -> Y)
+    - implement a table : sample the tactic and prints the satisfaction
         tactical %,  GDP, CO2, Satisfaction, pain associated to this tactical lever
-   - apply to EU, US, China, RoW
+ 
 
-   - move to Javascript generation
+// May 12th
+   - GW5 is officially closed
+   - move to Javascript generation (project cl2js)
    
+// June 9th - reopen for AXA IM presentation
+-> recréer des scenarios NGFS 
+    NGFS0 = Janco
+    NGFS 1 = CP (2.8)
+    NGFS 2 = NDG (2.1 -> 2.4 because no sequestration)
+
+-> faire des tableaux Excel pour comparer avec NGFS
+   faire tout en base 100 (2010) pour comparer les évolutions
+    GDP, Oil Price (relative), Energy Consumption, Clean, temperature delta, GT emissions
+
+Problemes à régler : commencer dans le train
+(1) comprendre pourquoi h8++ n a pas plus d'impact sur les émissions de CO2
+   => adapter cancel si besoin .... hypothèse 800$ de taxe carbone -> calculer le prix énegie à 300g/kWh
+(2) reconstruire un Jancovici = Carbonzero avec une division par 4 des émissions en 2050
+(3) on notera que CCEM ne fait pas d'hypothèse de séquestration de CO2 donc on obtient des températures plus hautes
+
+(1) h8c : taxe uniforme a 500$/t
+     -> on découvre une elasticité conservatrice = - 5% si on double, puis -30% ensuite
+     -> valider que pour le petrole 500$/t -> 37$/PWh
+    AHA ! la valeur n est pas la sur une tonne de carbone mais de CO2 !
+    IT WORKS MUCH BETTER.
+     h12: PNB: 188.1T$, 108.5PWh -> 520.9ppm CO2, 15.9C, 63.9PWh clean, 66.5% electricit
+    ===>  we need to understand why h12(200%) breaks (we get a NaN, not cool)
+
+    TRIPLE bug 
+      (a) cancel augmente trop vite et passe a 1 trop tot
+      (b) mais le code devrait etre safe ... corrigé dans game.cl (safe delta)
+      (c) si les taxes étouffent la demande, pas clair que le prix baisse a zero.
+          trouver une formule plus sympa (ou un min = prix de départ / 2)
+          il suffit de multiplier par min(max(0,pRatio - 0.5) / 2,1) 
+
+(2) ajout d'un facteur cancel dans scénario Janco
+    -> fonctionne mais pas génial (terme trop faible)
+    => pas vraiment utile : la taxe carbone fait le job
+
+// conclusion de Lundi soir : il a du travail pour avoir
+// (1) un bon fonctionnemenbt de la taxe carbone
+// (2) des triples scénarios propres
+// (2) des NGFS propres
+
+// 15 Juin 2024 
+TODO (1) creer  un NGFS0 qui marche
+         - avec 70PWh de clean en 2050  -> OK
+         - nécessite de faire plus de transfer  -> OK Mais XtoClean doit utiser improve%
+           pour que les taux de transfer soient entre 0% et 100%
+         - obtenir un run(90) qui marche -> OK  (avec XtoClean a 30%)
+         - monter la demat a 2.7% par an pour NGFS (pas Janco)
+         - refaire tous les scenarios !
+
+Changement dans la formule getOutput(Supplier) pour que les prix soient plus réaliste avec une forte taxe carbone
+formule quadratique qui fait que le prix ne baisse pas plus que 1/2 prix de départ
+
+// 16 Juin 2024
+    we need to put a cap on the transfer to Green since the total transfer flow should fit the capacity Growth constraint
+    => in M3, maxGrowthRate(s,y) was wrong because expressed as a percentage of the total capacity vs max flow
+       we had maxTransferFlow(s,y)
+
+      (2) recalibrer les scenarios
+           refaire Janco / Nordo / Diamandis
+
+      (3) faire les 3 NGFS
+
+      (4) refaire les EXCEL Nordo + nouveau excel NGFS
+            GDP /  Oil price
+            Energy /  Clean
+            Temperature / GT
+
+      (5) faire les deux slides pour AXA IM   -> fin de GW5 (extension 2)
+
+// 11 Juillet : cloture de GW5 / creation de GW6
+// ================================= Start  GW6 =========================================
 
 
- // ---------------------------------- still to do ------------------------------------------------------------------------     
-      
-  
-   (before IAMES)  generate JavaScript code and move everything to the GitHub repository
 
-   (delayed) we have a new pain function (game.cl) based on Sobriety (cancel), Results (gdp growth) and Warming
-      TODO -> check wheat output  from 0.65 in 2010 to 0.8 in 2020
-           -> introduce then the agro factor ? not clear, wheat is just a proxy, 
-              https://en.wikipedia.org/wiki/List_of_countries_by_wheat_production#/media/File:World_Production_Of_Primary_Crops,_Main_Commodities.svg
-          -> Delay the use of wheat in pain until GW6
-  
-
-// ================================= Possible ideas for GW6 =========================================
-
-
-The goal of GW6 is
-==================
-  (1) introduce the impact of CO2 on demography (cf. "The Uninhabitable Earth")
-       - reduce the life expectancy (sickness, heat, fires, floods, hurricanes, etc.)
-       - hence reduce the population growth 
-  (2) to compute SCC (social cost of carbon) with what-if analysis
-      - requires to evaluate the negavitve impact of CO2 on economy (and other things)
-      - then perform a sensitivity analysis on the CO2 tax
-  (3) introduce redistribution
-       - some form of jini index ... that policies may increase or decrease
-       - a belief about the social costs of redistribution (in terms of GDP)
-       - a formula that says (Francois de Closet) that pain is linked to the decline in Gdp with redistrib and to
-         the lack of growth without redistribution
-  (4) make the CO2 absobtion factor a function of CO2 concentration / CO2 emissions ? ... ask people who know !
-
-// Key idea for GW6
-- differentiation of model  with respect to energy, CO2 ...
-   example : real cost of CO2 (versus "social cost of carbon")
-- introduce strategies for supplier (requires keeping economic record ... the goal is to maximize LT profits)
-     would allow to simulate scarcity management
-
-// Key new components for GW6
-- Add India as a block (cf. section 8 de "CCEM Reference")
 
 
 

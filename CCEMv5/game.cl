@@ -37,7 +37,9 @@ SHOW1:integer :: 5        // verbosity for model M1
 [getOutput(s:FiniteSupplier,p:Price,cMax:Energy,y:Year) : float
   -> let cProd := s.production * min(1.0, (cMax / s.capacityMax)),  // projected output considering capacity 
          pRatio := p / s.price,                                     // relative price vs p0
-         f1 := min(cMax, max(0.0, cProd * (1 + (pRatio - 1) * s.sensitivity))) in     // linear formula
+  //       f1 := min(cMax, max(0.0, cProd * (1 + (pRatio - 1) * s.sensitivity))) in     // linear formula
+         f1 := min(cMax, max(0.0, cProd * (1 + (pRatio - 1) * s.sensitivity ) *     // quadratic formula
+                                          max(0.0,min(1.0, (2 * pRatio - 1))))) in
         f1]     
 
 // [2] CCEM 4 : formula is different for clean energy : supplier needs to sell all it can produce
@@ -137,10 +139,12 @@ SHOW2:integer :: 5       // verbosity for model M2
          c2 := c0 * dmr * globalEconomyRatio(b,y) *  populationRatio(b,y) * (1.0 - b.disasterRatios[y - 1]) in   
       (//[SHOW2] === needs(~S) = ~F2 PWh vs ~F2 (gdp:~F%,pop:~F%) // c,c2,c0,globalEconomyRatio(b,y),populationRatio(b,y),
        //[SHOW2] [~A] computes ~S needs: ~F3 -> ~F2 (~F%) demat:~F% // year!(y),c,c0,c2,(c2 / c0),dmr,
+       assert(c2 > 0.0),
        if (TESTC = c) printf("[~S] ~S needs = ~F2 (economy ~F%, export ~F%, import ~F%)\n",
                              year!(y),c,c2,globalEconomyRatio(b,y),exportReductionRatio(b,y),importReductionRatio(b,y)),
        if (TESTE != unknown) printf("--- ~S needs(~S) = ~F2\n",c,TESTE,c2 * ratio(c,TESTE)),
        c.needs[y] := list<Energy>{ (c2 * ratio(c,s)) | s in Supplier},
+       c.needs1[y] := list<Energy>{ (c2 * ratio(c,s)) | s in Supplier},
        if (y > 1)   // [4] execute transfers from subsitution capabilities setup at year y - 1
           for tr in pb.transitions transferNeed(c,y,tr,transferRate(  c,tr,y - 1) * c.needs[y][tr.from.index])) ]
 
@@ -232,15 +236,18 @@ SHOW2:integer :: 5       // verbosity for model M2
   -> let t := tax(c,s,y) in    
        (//[5] tax(~S, ~S) = ~A // c,s,t,
         for p in (1 .. NIS)
-          pb.needCurve[p] :+ howMuch(c,s,oilEquivalent(s,pb.priceRange[p] + t))) ]
+          (if (howMuch(c,s,oilEquivalent(s,pb.priceRange[p] + t)) < 0.0) 
+              error("bug with ~S, ~S @ price ~S",c,s,oilEquivalent(s,pb.priceRange[p] + t)),
+           pb.needCurve[p] :+ howMuch(c,s,oilEquivalent(s,pb.priceRange[p] + t)))) ]
 
 // carbon tax is based on co2 level reached the previous year
 // in GW3, we add the acceleration pushed by societal reaction
 // this returns a price in $ for 1 PWh (co2Factor adjusted)
-CinCO2 :: (12.0 / 44.0)  // one C for 2 O
+// CinCO2 :: (12.0 / 44.0)  // one C for 2 O => no longer in use
+// tax is CO2 equivalent ! 200$/t means per equivalent of CO2 ton
 [tax(c:Consumer,s:Supplier,y:Year) : Price
   -> (if (y <= 2) 0.0
-      else (get(c.carbonTax,pb.earth.co2Levels[y - 1]) + c.taxAcceleration) * s.co2Factor * CinCO2) ]
+      else (get(c.carbonTax,pb.earth.co2Levels[y - 1]) + c.taxAcceleration) * s.co2Factor) ]
 
 // this is what the consumer will pay 
 [truePrice(c:Consumer,s:Supplier,y:Year) : Price
@@ -256,7 +263,7 @@ CinCO2 :: (12.0 / 44.0)  // one C for 2 O
 HOW:integer :: 5
 [howMuch(c:Consumer,s:Supplier,p:Price) : Energy
   -> let cneed := c.needs[pb.year][s.index], x1 := getCancel(c,s,p), x2 := prevSaving(c,s), 
-         x := max(0.0,1.0 - (x1 + x2)) in
+         x := max(0.0,(1.0 - x1) * (1 - x2)) in
          (//[HOW] ~S consumes ~S = ~S * (1 - ~F3/~F3) price ~F3 (x:~S)// c,cneed * x,cneed,x1,x2,p,x,
           cneed * x) ]
 
@@ -330,6 +337,19 @@ HOW:integer :: 5
         p0) ]
 
 
+// balance production and consumption (M2)
+// production is defined by price / consumption is allocated to each consumer proportionnally 
+// to reach a perfect prod/conso balance
+BALANCE:integer :: 5
+[balanceEnergy(s:Supplier,y:Year) : void 
+  -> let production := getOutput(s,s.sellPrices[y], capacity(s,y,prev3Price(s,y)),y),   // s production for this year at price p
+         listConsos := list<Price>{ howMuch(c,s,truePrice(c,s,y)) | c in Consumer},
+         total := sum(listConsos) in
+        (//[BALANCE] [~A] BALANCE(~S) produces ~F2 Gtep @ ~F2 T$ versus consos = ~F2 // year!(y),s,production,s.sellPrices[y],total,
+         //[BALANCE] --- list HowMuch: ~S // listConsos,
+         for c in Consumer
+            c.consos[y][s.index] := listConsos[c.index] * (production / total)) ]
+
 
 // ********************************************************************
 // *    Part 3: Substitution model M3                                 *
@@ -353,8 +373,10 @@ SHOW3:integer :: 5                      // verbosity for model M3
          missed := cneed * (1.0 - w1) - c.consos[y][s.index],      // consumption that is actually cancelled
          x := missed / cneed  in       // actual cancel ratio
        (//[DEBUG] DEBUG [~A] cancel(~S,~S) is ~F% (at oep = ~F2) versus~F%, savings=~F% // year!(y),c,s,x,oep,getCancel(c,s,oep),w1,
+        c.sellPrices[y][s.index] := p,
         cancels(c,s,y,missed),
-        saves(c,s,y,w2),                
+        saves(c,s,y,w2),      
+        if (tax(c,s,y) >= PMAX * 80%) error("Carbon Tax got too high ~S",tax(c,s,y)),           
         // compute the transferRate for next years, based on current price, look at all transfer starting from s
         for tr in s.from updateRate(c,s,tr,y,cneed * (1.0 - (x + w1))),
         //[DEBUG] --- record qty(~S) @ ~F3 = ~F3 vs ~F3 [need = ~F3 ] // c,p,cneed * (1.0 - (x + w1)),howMuch(c,s,p),cneed,
@@ -413,29 +435,30 @@ SHOW3:integer :: 5                      // verbosity for model M3
 // [3] [6] monotonic update of the transferRate substitute a fraction from one energy source to another
 // note the monotonic behavior, we return the actual Percentage !
 // in v0.3 we
-[updateRate(c:Consumer,s1:Supplier,tr:Transition,y:Year,cneed:Energy) 
+[updateRate(c:Consumer,s1:Supplier,tr:Transition,y:Year,consumed:Energy) 
    -> let i := tr.index, s2 := tr.to,
           ftech := (1 - s2.techFactor) ^ float!(y),
           w1 := transferRate(c,tr,y - 1),                         // transfer last year
           w2 := max(w1, c.transitionFactors[y - 1] * getTransferRate(c,tr,y)),     // transfer expected for this year (monotonic !)
-          w3 := min(w2,w1 + maxGrowthRate(s2)) in                 // modulo capacity growth constraints
-         (c.substitutions[y][i] := w1 * cneed,                    // actual substitution (rate of previous year)
-          c.transferRates[y][i] := w3,                                // record new transfer level (for next year)
-          s2.addedCapacity :+ (w3 - w1) * cneed,                              // s2 capacity is increased ...
-          s2.additions[y] :+ (w3 - w1) * cneed,                       // ... keep a history of addition for s2
-          //[SHOW3] [~A] ~S transfers ~F1 PWh from ~S to ~S [matrix ->~F%] // year!(y),c,w1 * cneed,s1,s2,getTransferRate(c,tr,y),
-          c.transferFlows[y][i] :+ (w3 - w1) * cneed,                  // record the flow
-          c.ePWhs[y] :- (w1 * cneed) * eTransferRatio(c,s1,s2,tr.heat%),       // [6] electricity in PWh
-          c.eDeltas[y] :+ (w1 * cneed) * eTransferRatio(c,s1,s2,tr.heat%),     // for debug
+          w3 := applyMaxGrowthRate(w1,w2,s2,y) in                        // modulo capacity growth constraints (look-ahead)
+         (c.substitutions[y][i] := w1 * consumed,                    // actual substitution (rate of previous year)
+          c.transferRates[y][i] := min(1.0,w3),                                // record new transfer level (for next year)
+          s2.addedCapacity :+ (w3 - w1) * consumed,                              // s2 capacity is increased ...
+          s2.additions[y] :+ (w3 - w1) * consumed,                       // ... keep a history of addition for s2
+          //[SHOW3] [~A] ~S transfers ~F1 PWh from ~S to ~S, rate:= ~F% [matrix ->~F%, max:~F%] maxFlow(~S):~F2 // year!(y),c,w1 * consumed,s1,s2,w3,getTransferRate(c,tr,y),maxTransferRate(s2,y),s2,maxTransferFlow(s2,y),
+          //[SHOW3]  => capacity(~S) rises by ~F2 (~F% -> ~F%) [sum:~F2] // s2,(w3 - w1) * consumed, w1, w3,s2.additions[y],
+          c.transferFlows[y][i] :+ (w3 - w1) * consumed,                  // record the flow
+          c.ePWhs[y] :- (w1 * consumed) * eTransferRatio(c,s1,s2,tr.heat%),       // [6] electricity in PWh
+          c.eDeltas[y] :+ (w1 * consumed) * eTransferRatio(c,s1,s2,tr.heat%),     // for debug
           if (s2 = TESTE | c = TESTC) 
              (trace(TALK,"[~A:~F2] ~S transfer ~F2 PWh(~F%) [~F% now on -> add ~F3] of ~S to ~S [matrix ->~F%]\n",year!(y),s2.addedCapacity,
-                    c,w1 * cneed,w1,w3,(w3 - w1) * cneed, s1,tr.to, getTransferRate(c,tr,y)),
+                    c,w1 * consumed,w1,w3,(w3 - w1) * consumed, s1,tr.to, getTransferRate(c,tr,y)),
               trace(SHOW3,"[~A] this generates invest of ~F1G$ for ~F1PWh\n",year!(y),
-                           (w3 - w1) * cneed * s1.investPrice,
-                           (w3 - w1) * cneed)),
-          //[DEBUG] transfer(~S) invest ~F1T$ to get ~F1Gtoe savings// tr,(w3 - w1) * cneed * s1.investPrice * ftech,(w3 - w1) * cneed,    
+                           (w3 - w1) * consumed * s1.investPrice,
+                           (w3 - w1) * consumed)),
+          //[DEBUG] transfer(~S) invest ~F1T$ to get ~F1Gtoe savings// tr,(w3 - w1) * consumed * s1.investPrice * ftech,(w3 - w1) * consumed,    
           c.economy.investEnergy[y] :+                               // invest to substitute (the cost for this added capacity)
-              (w3 - w1) * cneed * s1.investPrice * ftech * steelFactor(s1,y))]
+              (w3 - w1) * consumed * s1.investPrice * ftech * steelFactor(s1,y))]
 
 // [6] gwdg : when using the static eRatio of 2010, we make an error that we must fix
 // r1: elecRate of s1, e2: elecRate of s2, h: heatRate of tr
@@ -446,14 +469,35 @@ SHOW3:integer :: 5                      // verbosity for model M3
                   c,s1,r1,s2,r2,(r1  - r2 * alpha),alpha), 
         (r1  - r2 * alpha)) ]
 
+// GW5 : to take the capacity growth into account, we need to compute the max growth rate expressed for the transfer flow,
+// computes the max capacity growth as a percentage of the complete max flow (all other s2 to s, all blocks)
+// w1 is the current rate, w2 is the expected rate, we apply the same proportional reduction factor so that the actual transfer flow meets the constraint
+[applyMaxGrowthRate(w1:Percent, w2:Percent,s:Supplier, y:Year) : Percent
+  ->  w1 + (w2 - w1) * min(1.0, maxTransferRate(s,y)) ]
 
-// computes the max capacity growth as a percentage
-[maxGrowthRate(s:FiniteSupplier) : Percent
-  -> s.capacityGrowth]          
+// computes the max capacity growth as a percentage of the complete max flow (all other s2 to s, all blocks)
+// w1 is the current rate, w2 is the expected rate, we apply the same proportional reduction factor so that the actual transfer flow meets the constraint
+[maxTransferRate(s:FiniteSupplier, y:Year) : Percent
+  -> let f := maxTransferFlow(s,y) in 
+       (if (f > 0.0) (s.capacityGrowth * prevMaxCapacity(s,pb.year) / f) else 0.0) ]     
 
-[maxGrowthRate(s:InfiniteSupplier) : Percent
-  -> get(s.growthPotential,yearF(pb.year)) / prevMaxCapacity(s,pb.year) ]
+// for Clean, s.growthPotential is the max PWh that we can add in a year
+[maxTransferRate(s:InfiniteSupplier, y:Year) : Percent
+  -> let f := maxTransferFlow(s,y) in 
+       (if (f > 0.0) (get(s.growthPotential,yearF(pb.year)) / f) else 0.0) ]
 
+// maxTransferFlow is the sum of all transfer rates (from all s2 to s) at the max possible level from the existing one (y  -1)
+// note the look-ahead pattern: the code is similar to updateRate (without the capacity constraint)
+// approximate : since c.consos is not known yet, we use the previous year's consos
+[maxTransferFlow(s:Supplier, y:Year) : Energy
+  -> let e := 0.0 in 
+       (for tr in pb.transitions
+          (if (tr.to = s)
+             for c in Consumer
+                let w1 := transferRate(c,tr,y - 1),
+                    w2 := max(w1, c.transitionFactors[y - 1] * getTransferRate(c,tr,y)) in
+                  e :+ (w2 - w1) * c.consos[y - 1][tr.from.index]),
+        e) ]
 
 // ********************************************************************
 // *    Part 4: Economy model M4                                      *
@@ -484,7 +528,10 @@ SHOW4:integer :: 5        // verbosity for model M4
 // compensate the integration factor (GDP growing and disaster ratio growing, so final compound effect needs to be multiplied by 3)
 [newMaxout(b:Block,y:Year) : Price
   -> (b.maxout[y - 1] * populationGrowth(b,y)  + b.investGrowth[y - 1] * get(b.roI,yearF(y))) *
-       (1.0 - max(0.0,3.0 * (b.disasterRatios[y] - b.disasterRatios[y - 1])))]
+       (1.0 - disasterYearly(b,y))]
+
+[disasterYearly(b:Block,y:Year) : Percent
+  -> max(0.0,5.0 * (b.disasterRatios[y] - b.disasterRatios[y - 1])) ]
 
 // [2] [3] [4] [6] very simple economical equation of a regional economy (Block)
 // note : in GW3 we have one world economy, in GW4 we may separate
@@ -500,21 +547,24 @@ SHOW4:integer :: 5        // verbosity for model M4
                   get(b.describes.disasterLoss,t - e.avgCentury)),        // [2] earth factor : loss of productive capacity
         b.maxout[y] := newMaxout(b,y),               // produce this year's growth (max gdp)
         b.tradeFactors[y] := tradeImportFactors(b,y),     // import trade factor (protectionism)
-        e.gdpLosses[y] :+ b.maxout[y] * b.disasterRatios[y],  // [2] record the loss of gdp
-        trace(5,"==> ~S: maxOut ratio is ~F% -> ~F2T$ (cummul expected : ~F2T$)\n",
-            b, b.disasterRatios[y], b.maxout[y] * max(0.0,b.disasterRatios[y] - b.disasterRatios[y - 1]), b.maxout[y] * b.disasterRatios[y]),
+        e.gdpLosses[y] :+ b.maxout[y] * disasterYearly(b,y),  // [2] record the loss of gdp
+        trace(DEBUG,"==> ~S: maxOut ratio is ~F% -> ~F2T$ (cummul expected : ~F2T$)\n",
+            b, b.disasterRatios[y], b.maxout[y] * disasterYearly(b,y), b.maxout[y] * b.disasterRatios[y]),
         //[SHOW4] --- Growth for ~S -> ~F2T$, invest(~F2) x roi (~F2) -> +~F2T$,  // b, b.maxout[y], iv, get(b.roI,yearF(y)),iv * get(b.roI,yearF(y)),
         //[SHOW4] --- temperature is now ~F2, loss is ~F% // t,get(b.describes.disasterLoss,t - e.avgCentury),
         b.lossRatios[y] := impactFromCancel(b,y),                       // [3] economy factor: loss of energy -> cancellation
         b.results[y] := b.maxout[y] * (1.0 - b.lossRatios[y]) * 
                         (1.0 + importReductionRatio(b,y) + exportReductionRatio(b,y)),
+        trace(DEBUG,"[~A] ~S maxout is ~F2 and result is ~F2 ========\n",year!(y),b,b.maxout[y],b.results[y]),
+        trace(DEBUG,"[~A] ~S lossRatio ~F2 and other is ~F2 ========\n",year!(y),b,b.lossRatios[y],importReductionRatio(b,y) + exportReductionRatio(b,y)),
         if (TESTC = b.describes) printf("[~S] ~S mxout = ~F2 (ImportRatio ~F%, ExportRatio ~F%)\n",
                                         year!(y),b,b.maxout[y],importReductionRatio(b,y),exportReductionRatio(b,y)),
         let r1 := b.results[y - 1],  r2 := b.results[y], ix := 0.0 in
          (//[SHOW4] M4: ~S invest ~F% of GDP (grows from ~F2T$ to ~F2T$ = ~F%), target=~F% // b.describes, (iv / r1), r1, r2, (r2 - r1) / r2, b.iRevenue,
           ix := r2 * b.iRevenue *             // [6] fraction of economy is gone (r1 -> r2)
                  (1.0 - b.lossRatios[y]) *    // managing the social consequence of this loss reduces the ability to invest
-                 (1.0 - marginReduction(b.describes,y)),    // margin reduction -> invest reduction
+                 (1.0 - marginReduction(b.describes,y)) *     // margin reduction -> invest reduction
+                 (1.0 - disasterYearly(b,y)),                 // disaster impact invest too 
           invE := max(0.0, invE - sum(list{c.carbonTaxes[y] | c in Consumer})),
           b.investGrowth[y] := (ix - invE))) ]
 
@@ -626,9 +676,11 @@ MAXTR :: 150.0     // max transition acceleration compared to best plan
                  let co2perE1 := c1.co2Emissions[y] / sum(c1.consos[y]), 
                      co2perE2 := c2.co2Emissions[y] / sum(c2.consos[y]),
                      ctax1 := taxRate(c1,y), ctax2 := taxRate(c2,y) in
-                    (w1.openTrade[c2.index] := 1 - min(1.0,
-                                alpha * max(0.0,(co2perE2 - co2perE1) / co2perE1) *
+                    (//[5] [~A] CP(~S,~S) -> ~S(~S) ~S; tx ~S ~S // y, c1,c2, co2perE1, c1.consos[y], co2perE2, ctax1, ctax2,
+                     w1.openTrade[c2.index] := 1 - min(1.0,
+                                alpha * max(0.0,(co2perE2 - co2perE1) / (0.001 + co2perE1)) *
                                                      max(0.0,(ctax1 - ctax2) / (0.001 + ctax1))),
+                     //[5] CP(~S,~S) <- ~S // c1,c2,w1.openTrade[c2.index],
                      if (alpha > 0.0)
                        trace(1,"protectionism for ~S(tax:~F2) -> ~S(tax:~F2) = ~F% from co2/GDP ~F% and ~F%\n",
                              c1,ctax1,c2,ctax2,w1.openTrade[c2.index],co2perE1,co2perE2))))]
@@ -729,18 +781,6 @@ Gt2km2 :: 11.6e-3    // trabnsform m2/MWh into millionskm2/Gtep
           growth := max(0.0, min(rProd * prev, maxDelta)) in  // cap growth follows conso but is bounded 
          printf("[~A] >>> max capacity(~S@~F2)=~F2  (rProd=~F%,maxD=~F2 => growth=~F2) Gtep {was:~F2}\n",
             year!(y),x,p,prev + growth, rProd, maxDelta, growth, prev) ]
-
-// balance production and consumption (M2)
-// production is defined by price / consumption is allocated to each consumer proportionnally 
-// to reach a perfect prod/conso balance
-[balanceEnergy(s:Supplier,y:Year) : void 
-  -> let production := getOutput(s,s.sellPrices[y], capacity(s,y,prev3Price(s,y)),y),   // s production for this year at price p
-         listConsos := list<Price>{ howMuch(c,s,truePrice(c,s,y)) | c in Consumer},
-         total := sum(listConsos) in
-        (//[DEBUG] [~A] BALANCE(~S) produces ~F2 Gtep @ ~F2 T$ versus consos = ~F2 // year!(y),s,production,s.sellPrices[y],total,
-         //[DEBUG] --- list HowMuch: ~S // listConsos,
-         for c in Consumer
-            c.consos[y][s.index] := listConsos[c.index] * (production / total)) ]
 
 
 // Dynamic Balance checks for M4 
