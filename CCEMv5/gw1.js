@@ -1,5 +1,5 @@
 /***** CLAIRE Compilation of module gw1 into Javascript 
-       [version 4.1.1 / safety 3] Sunday 05-12-2024 07:27:19 *****/
+       [version 4.1.1 / safety 3] Sunday 07-14-2024 16:46:17 *****/
 
 const kernel = require('./ClaireKernel')
 
@@ -9,9 +9,7 @@ const kernel = require('./ClaireKernel')
 //  *    Part 1: Supply side: Energy Production                        *
 //  ********************************************************************
 //  we need to manipulate simple curves - in version 0.3 we use both step- and  piece-wise linear
-//  functions, defined by a list of pairs (x,f(x))
-
-class ListFunction extends kernel.ClaireObject{ 
+//  functions, defined by a list of pairs (x,f(x))class ListFunction extends kernel.ClaireObject{ 
    
   constructor() { 
     super()
@@ -42,8 +40,7 @@ class ListFunction extends kernel.ClaireObject{
   
   // ----- class method adjust @ ListFunction ------------- 
 //  adjust a policy represented by an affine function: keep the dates, change the value by a factor
-//  destructive operation -> changes the affine / list function
-Adjust (factor) { 
+//  destructive operation -> changes the affine / list functionAdjust (factor) { 
     var i  = 1
     var g0071  = this.n
     while (i <= g0071) { 
@@ -56,8 +53,7 @@ Adjust (factor) {
 
 
 // class file for StepFunction in module gw1 // 
-//  StepFunction is the simplest
-class StepFunction extends ListFunction{ 
+//  StepFunction is the simplestclass StepFunction extends ListFunction{ 
    
   constructor() { 
     super()
@@ -72,8 +68,7 @@ class StepFunction extends ListFunction{
 //  this would make gw0 non diet
 //  [get(a:Affine,x:integer) : float 
 //    -> get(a,float!(x)) ]
-//  returns the value of the step function for a given point between m and M : easier !
-Get (x) { 
+//  returns the value of the step function for a given point between m and M : easier !Get (x) { 
     var Result 
     var i  = 0
     var j  = 1
@@ -97,8 +92,7 @@ Get (x) {
 
 
 // class file for Affine in module gw1 // 
-//  Affine uses a linear interpolation  
-class Affine extends ListFunction{ 
+//  Affine uses a linear interpolation  class Affine extends ListFunction{ 
    
   constructor() { 
     super()
@@ -111,8 +105,7 @@ class Affine extends ListFunction{
   
   // ----- class method get @ Affine ------------- 
 //  utilities ------------------------------------------------------------------
-//  returns the value of the affine function for a given point between m and M
-Get (x) { 
+//  returns the value of the affine function for a given point between m and MGet (x) { 
     var Result 
     var i  = 0
     var j  = 1
@@ -163,8 +156,7 @@ Get (x) {
     } 
   
   // ----- class method improve @ Affine ------------- 
-//  improve : modify the factors without changing the dates
-Improve (factor) { 
+//  improve : modify the factors without changing the datesImprove (factor) { 
     var Result 
     var _CL_obj  = (new Affine()).Is(C_Affine)
     _CL_obj.n = this.n
@@ -187,12 +179,35 @@ Improve (factor) {
     return Result
     } 
   
+  // ----- class method improve% @ Affine ------------- 
+  Improve_Z (factor) { 
+    var Result 
+    var _CL_obj  = (new Affine()).Is(C_Affine)
+    _CL_obj.n = this.n
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0076  = this.n
+      while (i <= g0076) { 
+        kernel.add_list(i_bag,improve_Z_float(this.yValues[i-1],factor))
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      _CL_obj.yValues = va_arg2
+      } 
+    _CL_obj.minValue = improve_Z_float(this.minValue,factor)
+    _CL_obj.maxValue = improve_Z_float(this.maxValue,factor)
+    _CL_obj.xValues = this.xValues
+    Result = _CL_obj
+    return Result
+    } 
+  
   } 
 
 
 // class file for Transition in module gw1 // 
-//  in GW3 we create transition objects (s1 -> s2) to make the code easier to read !
-class Transition extends kernel.ClaireObject{ 
+//  in GW3 we create transition objects (s1 -> s2) to make the code easier to read !class Transition extends kernel.ClaireObject{ 
    
   constructor() { 
     super()
@@ -211,23 +226,21 @@ class Transition extends kernel.ClaireObject{
     } 
   
   // ----- class method transferAmount @ Transition ------------- 
-//  additional transfer amounts for a transition
-TransferAmount (c,y) { 
+//  additional transfer amounts for a transitionTransferAmount (c,y) { 
     return  c.transferFlows[y-1][this.index-1]
     } 
   
   // ----- class method actualEnergy @ Transition ------------- 
-//  actual transfer in PWh (world wide)
-ActualEnergy (y) { 
+//  actual transfer in PWh (world wide)ActualEnergy (y) { 
     var Result 
-    var g0076  = 0
-    for (const g0079 of C_Consumer.descendants){ 
-      for (const g0078 of g0079.instances){ 
-        var g0077  = g0078.substitutions[y-1][this.index-1]
-        g0076 = (g0076+g0077)
+    var g0077  = 0
+    for (const g0080 of C_Consumer.descendants){ 
+      for (const g0079 of g0080.instances){ 
+        var g0078  = g0079.substitutions[y-1][this.index-1]
+        g0077 = (g0077+g0078)
         } 
       } 
-    Result = g0076
+    Result = g0077
     return Result
     } 
   
@@ -236,8 +249,7 @@ ActualEnergy (y) {
 
 // class file for Supplier in module gw1 // 
 //  an energy supplier is defined by its inventory and the way it can be brought
-//  to market (price-wise = strategy & production-wise = constraints)
-class Supplier extends kernel.ClaireThing{ 
+//  to market (price-wise = strategy & production-wise = constraints)class Supplier extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -265,8 +277,7 @@ class Supplier extends kernel.ClaireThing{
     } 
   
   // ----- class method getTransition @ Supplier ------------- 
-//  finds a transition
-GetTransition (s2) { 
+//  finds a transitionGetTransition (s2) { 
     var Result 
     var x 
     var tr_some  = null
@@ -278,17 +289,197 @@ GetTransition (s2) {
       } 
     x = tr_some
     if (kernel.owner_any(x).IsIn(C_Transition) == true) { 
-      var g0080  = x
-      Result = g0080
+      var g0081  = x
+      Result = g0081
       } else {
       Result = kernel.MakeError("no transition exists from ~S to ~S",[C_from,C_to]).Close()
       } 
     return Result
     } 
   
+  // ----- class method prevPrice @ Supplier ------------- 
+//  previous pricePrevPrice (y) { 
+    return  this.sellPrices[(y-1)-1]
+    } 
+  
+  // ----- class method prev3Price @ Supplier ------------- 
+//  [5] previous price, average over 3 yearsPrev3Price (y) { 
+    if (y == 2) { 
+      return  this.price
+      }  else if (y == 3) { 
+      return  ((this.sellPrices[(y-1)-1]+(2*this.price))/3)
+      } else {
+      return  ((((4*this.sellPrices[(y-1)-1])+this.sellPrices[(y-2)-1])-(2*this.sellPrices[(y-3)-1]))/3)
+      } 
+    } 
+  
+  // ----- class method prevMaxCapacity @ Supplier ------------- 
+//  previous max capacity (includes additions from transfers)PrevMaxCapacity (y) { 
+    return  (this.capacities[(y-1)-1]+this.addedCapacities[(y-1)-1])
+    } 
+  
+  // ----- class method prodGrowth @ Supplier ------------- 
+//  this is a heuristic that needs to get adjusted, it says that the maxcapacity should be X% (110)
+//  of the net demand that was seen (net = needs - savings & cancel) averaged over past 3 yearsProdGrowth (prev,y) { 
+    var Result 
+    if (y <= 3) { 
+      Result = 0.05
+      } else {
+      var s  = ((((4*this.netNeeds[(y-1)-1])+this.netNeeds[(y-2)-1])-(2*this.netNeeds[(y-2)-1]))/3)
+      if (this == C_TESTE) { 
+        kernel.PRINC("[")
+        kernel.princ_integer(year_I(y))
+        kernel.PRINC("] >>> prev(")
+        kernel.print_any(this)
+        kernel.PRINC(")=")
+        kernel.printFDigit_float(prev,2)
+        kernel.PRINC(", 3 years is ")
+        kernel.printFDigit_float(s,2)
+        kernel.PRINC(" Gtoe from ")
+        var arg_1 
+        var i_bag  = []
+        var i  = ((2 <= (y-3)) ? 
+          (y-3) :
+          2)
+        var g0083  = (y-1)
+        while (i <= g0083) { 
+          kernel.add_list(i_bag,this.netNeeds[i-1])
+          i = (i+1)
+          } 
+        arg_1 = i_bag
+        kernel.princ_list(arg_1)
+        kernel.PRINC("\n")
+        } 
+      Result = (((s/prev)*this.horizonFactor)-1)
+      } 
+    return Result
+    } 
+  
+  // ----- class method getProd @ Supplier ------------- 
+//  The second step is to maximize the utility function over a price range from 0 to X, (that is
+//  with a capacity that does not increase more than 15%GetProd (y) { 
+    var cMax  = this.Capacity(y,this.Prev3Price(y))
+    this.capacities[y-1]=(cMax-this.addedCapacities[(y-1)-1])
+    if (this == C_TESTE) { 
+      kernel.PRINC("[")
+      kernel.princ_integer(year_I(y))
+      kernel.PRINC("] compute prod(")
+      kernel.print_any(this)
+      kernel.PRINC(") cmax=")
+      kernel.printFDigit_float(cMax,2)
+      kernel.PRINC(" @price:")
+      kernel.printFDigit_float(this.Prev3Price(y),2)
+      kernel.PRINC(")\n")
+      this.ShowMaxCapacity(y,this.Prev3Price(y))
+      this.ShowOutput(y,this.Prev3Price(y))
+      } 
+    var p  = 1
+    var g0084  = C_NIS
+    while (p <= g0084) { 
+      C_pb.prodCurve[p-1]=this.GetOutput(C_pb.priceRange[p-1],cMax,y)
+      p = (p+1)
+      } 
+    } 
+  
+  // ----- class method oilEquivalent @ Supplier ------------- 
+//  when we compute cancellation or savings, all threshold are defined with oilPrice
+//  this is a normalized (equivalent of oil, adjusted for price increase)OilEquivalent (p) { 
+    return  ((p*C_pb.oil.price)/this.price)
+    } 
+  
+  // ----- class method recordCapacity @ Supplier ------------- 
+//  each production has a price (Invest = capacity increase / 20)
+//  we distribute the energy investment across the blocs using energy consumption as a ratio
+//  note: we call this once consomations are knownRecordCapacity (y) { 
+    var p1  = this.sellPrices[y-1]
+    var p2  = this.Prev3Price(y)
+    var addCapacity  = kernel.max_float(0,(this.capacities[y-1]-this.PrevMaxCapacity(y)))
+    if (this == C_TESTE) { 
+      kernel.PRINC(">>>>> ")
+      this.ShowOutput(y,p1)
+      } 
+    if (this.isa.IsIn(C_FiniteSupplier) == true) { 
+      var g0089  = this
+      g0089.inventories[y-1]=(g0089.inventory.Get(p2)-g0089.gone)
+      } 
+    
+    var addInvest  = (addCapacity*this.investPrice)
+    for (const g0090 of C_Block.descendants){ 
+      for (const b of g0090.instances){ 
+        b.investEnergy[y-1]=(b.investEnergy[y-1]+(addInvest*this.ShareOfConsumption(b,y)))
+        } 
+      } 
+    } 
+  
+  // ----- class method shareOfConsumption @ Supplier ------------- 
+//  share of energy consumption for a block
+//  we use the previous year to get the ratio (consumption is not known yet)ShareOfConsumption (b,y) { 
+    var Result 
+    var arg_1 
+    var g0091  = 0
+    for (const g0094 of C_Block.descendants){ 
+      for (const g0093 of g0094.instances){ 
+        var g0092  = g0093.describes.consos[(y-1)-1][this.index-1]
+        g0091 = (g0091+g0092)
+        } 
+      } 
+    arg_1 = g0091
+    Result = (b.describes.consos[(y-1)-1][this.index-1]/arg_1)
+    return Result
+    } 
+  
+  // ----- class method balanceEnergy @ Supplier ------------- 
+  BalanceEnergy (y) { 
+    var production  = this.GetOutput(this.sellPrices[y-1],this.Capacity(y,this.Prev3Price(y)),y)
+    var listConsos 
+    var c_bag  = []
+    for (const g0095 of C_Consumer.descendants){ 
+      for (const c of g0095.instances){ 
+        kernel.add_list(c_bag,c.HowMuch(this,c.TruePrice(this,y)))
+        } 
+      } 
+    listConsos = c_bag
+    var total 
+    var g0096  = 0
+    for (const g0097 of listConsos){ 
+      g0096 = (g0096+g0097)
+      } 
+    total = g0096
+    
+    
+    for (const g0098 of C_Consumer.descendants){ 
+      for (const c of g0098.instances){ 
+        c.consos[y-1][this.index-1]=(listConsos[c.index-1]*(production/total))
+        } 
+      } 
+    } 
+  
+  // ----- class method maxTransferFlow @ Supplier ------------- 
+//  maxTransferFlow is the sum of all transfer rates (from all s2 to s) at the max possible level from the existing one (y  -1)
+//  note the look-ahead pattern: the code is similar to updateRate (without the capacity constraint)
+//  approximate : since c.consos is not known yet, we use the previous year's consosMaxTransferFlow (y) { 
+    var Result 
+    var e  = 0
+    for (const tr of C_pb.transitions){ 
+      if (tr.to == this) { 
+        for (const g0099 of C_Consumer.descendants){ 
+          for (const c of g0099.instances){ 
+            var w1  = c.TransferRate(tr,(y-1))
+            var w2  = kernel.max_float(w1,(c.transitionFactors[(y-1)-1]*c.GetTransferRate(tr,y)))
+            e = (e+((w2-w1)*c.consos[(y-1)-1][tr.from.index-1]))
+            } 
+          } 
+        } 
+      } 
+    Result = e
+    return Result
+    } 
+  
   // ----- class method showOutput @ Supplier ------------- 
-//  debug: explain the reasonning
-ShowOutput (y,p) { 
+//  ********************************************************************
+//  *    Part 6: Run-time model checking                               *
+//  ********************************************************************
+//  debug: explain the reasonningShowOutput (y,p) { 
     var cMax  = this.Capacity(y,this.Prev3Price(y))
     var cProd  = (this.production*((1 <= (cMax/this.capacityMax)) ? 
       1 :
@@ -311,184 +502,15 @@ ShowOutput (y,p) {
     kernel.PRINC(")\n")
     } 
   
-  // ----- class method prevPrice @ Supplier ------------- 
-//  previous price
-PrevPrice (y) { 
-    return  this.sellPrices[(y-1)-1]
-    } 
-  
-  // ----- class method prev3Price @ Supplier ------------- 
-//  previous price, average over 3 years
-Prev3Price (y) { 
-    if (y == 2) { 
-      return  this.price
-      }  else if (y == 3) { 
-      return  ((this.sellPrices[(y-1)-1]+(2*this.price))/3)
-      } else {
-      return  ((((4*this.sellPrices[(y-1)-1])+this.sellPrices[(y-2)-1])-(2*this.sellPrices[(y-3)-1]))/3)
-      } 
-    } 
-  
-  // ----- class method prevMaxCapacity @ Supplier ------------- 
-//  previous max capacity (includes additions from transfers)
-PrevMaxCapacity (y) { 
-    return  (this.capacities[(y-1)-1]+this.addedCapacities[(y-1)-1])
-    } 
-  
-  // ----- class method prodGrowth @ Supplier ------------- 
-//  this is a heuristic that needs to get adjusted, it says that the maxcapacity should be X% (110)
-//  of the net demand that was seen (net = needs - savings & cancel) averaged over past 3 years
-ProdGrowth (prev,y) { 
-    var Result 
-    if (y <= 3) { 
-      Result = 0.05
-      } else {
-      var s  = ((((4*this.netNeeds[(y-1)-1])+this.netNeeds[(y-2)-1])-(2*this.netNeeds[(y-2)-1]))/3)
-      if (this == C_TESTE) { 
-        kernel.PRINC("[")
-        kernel.princ_integer(year_I(y))
-        kernel.PRINC("] >>> prev(")
-        kernel.print_any(this)
-        kernel.PRINC(")=")
-        kernel.printFDigit_float(prev,2)
-        kernel.PRINC(", 3 years is ")
-        kernel.printFDigit_float(s,2)
-        kernel.PRINC(" Gtoe from ")
-        var arg_1 
-        var i_bag  = []
-        var i  = ((2 <= (y-3)) ? 
-          (y-3) :
-          2)
-        var g0086  = (y-1)
-        while (i <= g0086) { 
-          kernel.add_list(i_bag,this.netNeeds[i-1])
-          i = (i+1)
-          } 
-        arg_1 = i_bag
-        kernel.princ_list(arg_1)
-        kernel.PRINC("\n")
-        } 
-      Result = (((s/prev)*this.horizonFactor)-1)
-      } 
-    return Result
-    } 
-  
-  // ----- class method getProd @ Supplier ------------- 
-//  The second step is to maximize the utility function over a price range from 0 to X, (that is
-//  with a capacity that does not increase more than 15%
-GetProd (y) { 
-    var cMax  = this.Capacity(y,this.Prev3Price(y))
-    this.capacities[y-1]=(cMax-this.addedCapacities[(y-1)-1])
-    if (this == C_TESTE) { 
-      kernel.PRINC("[")
-      kernel.princ_integer(year_I(y))
-      kernel.PRINC("] compute prod(")
-      kernel.print_any(this)
-      kernel.PRINC(") cmax=")
-      kernel.printFDigit_float(cMax,2)
-      kernel.PRINC(" @price:")
-      kernel.printFDigit_float(this.Prev3Price(y),2)
-      kernel.PRINC(")\n")
-      this.ShowMaxCapacity(y,this.Prev3Price(y))
-      this.ShowOutput(y,this.Prev3Price(y))
-      } 
-    var p  = 1
-    var g0087  = C_NIS
-    while (p <= g0087) { 
-      C_pb.prodCurve[p-1]=this.GetOutput(C_pb.priceRange[p-1],cMax,y)
-      p = (p+1)
-      } 
-    } 
-  
-  // ----- class method oilEquivalent @ Supplier ------------- 
-//  when we compute cancellation or savings, all threshold are defined with oilPrice
-//  this is a normalized (equivalent of oil, adjusted for price increase)
-OilEquivalent (p) { 
-    return  ((p*C_pb.oil.price)/this.price)
-    } 
-  
-  // ----- class method recordCapacity @ Supplier ------------- 
-//  each production has a price (Invest = capacity increase / 20)
-//  we distribute the energy investment across the blocs using energy consumption as a ratio
-//  note: we call this once consomations are known
-RecordCapacity (y) { 
-    var p1  = this.sellPrices[y-1]
-    var p2  = this.Prev3Price(y)
-    var addCapacity  = kernel.max_float(0,(this.capacities[y-1]-this.PrevMaxCapacity(y)))
-    if (this == C_TESTE) { 
-      kernel.PRINC(">>>>> ")
-      this.ShowOutput(y,p1)
-      } 
-    if (this.isa.IsIn(C_FiniteSupplier) == true) { 
-      var g0088  = this
-      g0088.inventories[y-1]=(g0088.inventory.Get(p2)-g0088.gone)
-      } 
-    
-    var addInvest  = (addCapacity*this.investPrice)
-    for (const g0089 of C_Block.descendants){ 
-      for (const b of g0089.instances){ 
-        b.investEnergy[y-1]=(b.investEnergy[y-1]+(addInvest*this.ShareOfConsumption(b,y)))
-        } 
-      } 
-    } 
-  
-  // ----- class method shareOfConsumption @ Supplier ------------- 
-//  share of energy consumption for a block
-//  we use the previous year to get the ratio (consumption is not known yet)
-ShareOfConsumption (b,y) { 
-    var Result 
-    var arg_1 
-    var g0090  = 0
-    for (const g0093 of C_Block.descendants){ 
-      for (const g0092 of g0093.instances){ 
-        var g0091  = g0092.describes.consos[(y-1)-1][this.index-1]
-        g0090 = (g0090+g0091)
-        } 
-      } 
-    arg_1 = g0090
-    Result = (b.describes.consos[(y-1)-1][this.index-1]/arg_1)
-    return Result
-    } 
-  
-  // ----- class method balanceEnergy @ Supplier ------------- 
-//  balance production and consumption
-//  production is defined by price / consumption is allocated to each consumer proportionnally 
-//  to reach a perfect prod/conso balance
-BalanceEnergy (y) { 
-    var production  = this.GetOutput(this.sellPrices[y-1],this.Capacity(y,this.Prev3Price(y)),y)
-    var listConsos 
-    var c_bag  = []
-    for (const g0094 of C_Consumer.descendants){ 
-      for (const c of g0094.instances){ 
-        kernel.add_list(c_bag,c.HowMuch(this,c.TruePrice(this,y)))
-        } 
-      } 
-    listConsos = c_bag
-    var total 
-    var g0095  = 0
-    for (const g0096 of listConsos){ 
-      g0095 = (g0095+g0096)
-      } 
-    total = g0095
-    
-    
-    for (const g0097 of C_Consumer.descendants){ 
-      for (const c of g0097.instances){ 
-        c.consos[y-1][this.index-1]=(listConsos[c.index-1]*(production/total))
-        } 
-      } 
-    } 
-  
   // ----- class method checkTransfers @ Supplier ------------- 
-//  checks that transfers are consistent (delta capacities versus current levels of transfers)
-CheckTransfers (y) { 
+//  checks that transfers are consistent (delta capacities versus current levels of transfers)CheckTransfers (y) { 
     this.addedCapacities[y-1]=this.addedCapacity
     var delta1  = (this.addedCapacity-this.addedCapacities[(y-1)-1])
     var delta2  = 0
     for (const tr of C_pb.transitions){ 
       if (tr.to == this) { 
-        for (const g0098 of C_Consumer.descendants){ 
-          for (const c of g0098.instances){ 
+        for (const g0100 of C_Consumer.descendants){ 
+          for (const c of g0100.instances){ 
             if (this == C_TESTE) { 
               
               } 
@@ -508,13 +530,12 @@ CheckTransfers (y) {
     } 
   
   // ----- class method avgTax @ Supplier ------------- 
-//  average tax 
-AvgTax (y) { 
+//  average tax AvgTax (y) { 
     var Result 
     var w1  = 0
     var w2  = 0
-    for (const g0099 of C_Consumer.descendants){ 
-      for (const c of g0099.instances){ 
+    for (const g0101 of C_Consumer.descendants){ 
+      for (const c of g0101.instances){ 
         w1 = (w1+(c.Tax(this,y)*c.needs[y-1][this.index-1]))
         w2 = (w2+c.needs[y-1][this.index-1])
         } 
@@ -524,14 +545,13 @@ AvgTax (y) {
     } 
   
   // ----- class method init @ Supplier ------------- 
-//  supplier initialization (and reinit)
-Init () { 
+//  supplier initialization (and reinit)Init () { 
     { 
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0100  = C_NIT
-      while (i <= g0100) { 
+      var g0102  = C_NIT
+      while (i <= g0102) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -543,14 +563,14 @@ Init () {
       var va_arg2 
       var arg_1 
       var arg_2 
-      var g0101  = 0
-      for (const g0104 of C_Consumer.descendants){ 
-        for (const g0103 of g0104.instances){ 
-          var g0102  = g0103.eSources[this.index-1]
-          g0101 = (g0101+g0102)
+      var g0103  = 0
+      for (const g0106 of C_Consumer.descendants){ 
+        for (const g0105 of g0106.instances){ 
+          var g0104  = g0105.eSources[this.index-1]
+          g0103 = (g0103+g0104)
           } 
         } 
-      arg_2 = g0101
+      arg_2 = g0103
       arg_1 = (this.production-arg_2)
       va_arg2 = (arg_1/this.production)
       this.heat_Z = va_arg2
@@ -559,8 +579,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0105  = C_NIT
-      while (i <= g0105) { 
+      var g0107  = C_NIT
+      while (i <= g0107) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -574,8 +594,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0106  = C_NIT
-      while (i <= g0106) { 
+      var g0108  = C_NIT
+      while (i <= g0108) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -586,8 +606,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0107  = C_NIT
-      while (i <= g0107) { 
+      var g0109  = C_NIT
+      while (i <= g0109) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -595,27 +615,27 @@ Init () {
       this.addedCapacities = va_arg2
       } 
     if (this.isa.IsIn(C_FiniteSupplier) == true) { 
-      var g0108  = this
+      var g0110  = this
       { 
         var va_arg2 
         var i_bag  = []
         var i  = 1
-        var g0109  = C_NIT
-        while (i <= g0109) { 
+        var g0111  = C_NIT
+        while (i <= g0111) { 
           kernel.add_list(i_bag,0)
           i = (i+1)
           } 
         va_arg2 = i_bag
-        g0108.inventories = va_arg2
+        g0110.inventories = va_arg2
         } 
-      g0108.inventories[0]=g0108.inventory.Get(g0108.price)
+      g0110.inventories[0]=g0110.inventory.Get(g0110.price)
       } 
     { 
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0110  = C_NIT
-      while (i <= g0110) { 
+      var g0112  = C_NIT
+      while (i <= g0112) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -626,8 +646,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0111  = C_NIT
-      while (i <= g0111) { 
+      var g0113  = C_NIT
+      while (i <= g0113) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -643,8 +663,7 @@ Init () {
 // class file for FiniteSupplier in module gw1 // 
 //  keep track of max capacity
 //  two subclasses with two capacity model
-//  This is the regular one for fossile fuels : finite inventory = f(price)
-class FiniteSupplier extends Supplier{ 
+//  This is the regular one for fossile fuels : finite inventory = f(price)class FiniteSupplier extends Supplier{ 
    
   constructor(name) { 
     super(name)
@@ -676,18 +695,17 @@ class FiniteSupplier extends Supplier{
   
   // ----- class method getOutput @ FiniteSupplier ------------- 
 //  verbosity for model M1
-//  compute what the output for x:Supplier would be at price p
+//  [1] compute what the output for x:Supplier would be at price p
 //  OCCAM version -> we do not model the price strategy (lower to increase revenue), nor do model 
 //  really simple version : linear bounded by Cmax
 //     linear -> p = x.price (origin) ->  p.production (origin)   &   x.sensitivity
-//     capped by cMax (see below, given as a parameter)
-GetOutput (p,cMax,y) { 
+//     capped by cMax (see below, given as a parameter)GetOutput (p,cMax,y) { 
     var Result 
     var cProd  = (this.production*((1 <= (cMax/this.capacityMax)) ? 
       1 :
       (cMax/this.capacityMax)))
     var pRatio  = (p/this.price)
-    var f1  = kernel.min_float(cMax,kernel.max_float(0,(cProd*(1+((pRatio-1)*this.sensitivity)))))
+    var f1  = kernel.min_float(cMax,kernel.max_float(0,((cProd*(1+((pRatio-1)*this.sensitivity)))*kernel.max_float(0,kernel.min_float(1,((2*pRatio)-1))))))
     Result = f1
     return Result
     } 
@@ -696,9 +714,8 @@ GetOutput (p,cMax,y) {
 //  current max capacity should be proportional to inventory modulo the growth constraints
 //  we also take into account the quantity that was added through substitutions (cf. PrevMax uses additions)
 //  p is the average price of the last 3 years -> sets available inventory
-//  regular version for fossile energies : tries to match the evolution of demand
-//  capacity is adjusted when the inventory is below the threshold level
-Capacity (y,p) { 
+//  [3] regular version for fossile energies : tries to match the evolution of demand
+//  capacity is adjusted when the inventory is below the threshold levelCapacity (y,p) { 
     var Result 
     var prev  = this.PrevMaxCapacity(y)
     var I1  = (this.inventory.Get(p)-this.gone)
@@ -713,9 +730,19 @@ Capacity (y,p) {
     return Result
     } 
   
+  // ----- class method maxTransferRate @ FiniteSupplier ------------- 
+//  computes the max capacity growth as a percentage of the complete max flow (all other s2 to s, all blocks)
+//  w1 is the current rate, w2 is the expected rate, we apply the same proportional reduction factor so that the actual transfer flow meets the constraintMaxTransferRate (y) { 
+    var Result 
+    var f  = this.MaxTransferFlow(y)
+    Result = ((f > 0) ? 
+      ((this.capacityGrowth*this.PrevMaxCapacity(C_pb.year))/f) :
+      0)
+    return Result
+    } 
+  
   // ----- class method showMaxCapacity @ FiniteSupplier ------------- 
-//  debug: explain the reasonning for max capacity (finite case)
-ShowMaxCapacity (y,p) { 
+//  debug: explain the reasonning for max capacity (finite case)ShowMaxCapacity (y,p) { 
     var prev  = this.PrevMaxCapacity(y)
     var I1  = (this.inventory.Get(p)-this.gone)
     var I0  = this.inventory.Get(0)
@@ -745,12 +772,6 @@ ShowMaxCapacity (y,p) {
     kernel.PRINC("}\n")
     } 
   
-  // ----- class method maxGrowthRate @ FiniteSupplier ------------- 
-//  computes the max capacity growth as a percentage
-MaxGrowthRate () { 
-    return  this.capacityGrowth
-    } 
-  
   // ----- class method see @ FiniteSupplier ------------- 
   See (y) { 
     kernel.print_any(this)
@@ -770,8 +791,7 @@ MaxGrowthRate () {
 
 // class file for InfiniteSupplier in module gw1 // 
 //  a useful trace for debug: level of known inventory
-//  new in GW3: infinite energy model where the potential of new capacity depends on the price
-class InfiniteSupplier extends Supplier{ 
+//  new in GW3: infinite energy model where the potential of new capacity depends on the priceclass InfiniteSupplier extends Supplier{ 
    
   constructor(name) { 
     super(name)
@@ -799,10 +819,9 @@ class InfiniteSupplier extends Supplier{
     } 
   
   // ----- class method getOutput @ InfiniteSupplier ------------- 
-//  CCEM 4 : formula is different for clean energy : supplier needs to sell all it can produce
+//  [2] CCEM 4 : formula is different for clean energy : supplier needs to sell all it can produce
 //  but expects a price that is proportional to the GDP (in a world of energy abundance) - modulo sensitivity
-//  note : in a world of restriction, price is driven by cancellation
-GetOutput (p,cMax,y) { 
+//  note : in a world of restriction, price is driven by cancellationGetOutput (p,cMax,y) { 
     var Result 
     var cProd  = this.production
     var p0  = this.price
@@ -817,9 +836,8 @@ GetOutput (p,cMax,y) {
     } 
   
   // ----- class method capacity @ InfiniteSupplier ------------- 
-//  new version for clean energies -> growthPotential tells how much we could add
-//  capacity tries to match 110% of net demand (this should become a parameter, hard coded in test1.cl) 
-Capacity (y,p) { 
+//  [4] new version for clean energies -> growthPotential tells how much we could add
+//  capacity tries to match 110% of net demand (this should become a parameter, hard coded in test1.cl) Capacity (y,p) { 
     var Result 
     var prev  = this.PrevMaxCapacity(y)
     var maxDelta  = this.growthPotential.Get(yearF(y))
@@ -828,6 +846,16 @@ Capacity (y,p) {
       (expected*prev) :
       maxDelta))
     Result = (prev+growth)
+    return Result
+    } 
+  
+  // ----- class method maxTransferRate @ InfiniteSupplier ------------- 
+//  for Clean, s.growthPotential is the max PWh that we can add in a yearMaxTransferRate (y) { 
+    var Result 
+    var f  = this.MaxTransferFlow(y)
+    Result = ((f > 0) ? 
+      (this.growthPotential.Get(yearF(C_pb.year))/f) :
+      0)
     return Result
     } 
   
@@ -858,11 +886,6 @@ Capacity (y,p) {
     kernel.PRINC("}\n")
     } 
   
-  // ----- class method maxGrowthRate @ InfiniteSupplier ------------- 
-  MaxGrowthRate () { 
-    return  (this.growthPotential.Get(yearF(C_pb.year))/this.PrevMaxCapacity(C_pb.year))
-    } 
-  
   // ----- class method see @ InfiniteSupplier ------------- 
   See (y) { 
     kernel.print_any(this)
@@ -886,8 +909,7 @@ Capacity (y,p) {
 //  *    Part 3: Economy and Strategies                                *
 //  ********************************************************************
 //  in v0.1 we keep one global economy
-//  i.e. the consumers are all aggregated into one
-class Economy extends kernel.ClaireThing{ 
+//  i.e. the consumers are all aggregated into oneclass Economy extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -915,8 +937,8 @@ class Economy extends kernel.ClaireThing{
     kernel.PRINC("] ")
     var arg_1 
     if (this.isa.IsIn(C_Block) == true) { 
-      var g0112  = this
-      arg_1 = g0112.describes
+      var g0116  = this
+      arg_1 = g0116.describes
       } else {
       arg_1 = C_pb.world
       } 
@@ -949,57 +971,7 @@ class Economy extends kernel.ClaireThing{
     } 
   
   // ----- class method init @ Economy ------------- 
-//  init the variables associated to a block (represents a consumer economy)    
-Init () { 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0114  = C_NIT
-      while (i <= g0114) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.totalConsos = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0115  = C_NIT
-      while (i <= g0115) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.inputs = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0116  = C_NIT
-      while (i <= g0116) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.cancels = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0117  = C_NIT
-      while (i <= g0117) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.results = va_arg2
-      } 
-    this.results[0]=this.gdp
+//  init the variables associated to a block (represents a consumer economy)    Init () { 
     { 
       var va_arg2 
       var i_bag  = []
@@ -1010,9 +982,8 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
-      this.maxout = va_arg2
+      this.totalConsos = va_arg2
       } 
-    this.maxout[0]=this.gdp
     { 
       var va_arg2 
       var i_bag  = []
@@ -1023,9 +994,8 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
-      this.investGrowth = va_arg2
+      this.inputs = va_arg2
       } 
-    this.investGrowth[0]=this.investG
     { 
       var va_arg2 
       var i_bag  = []
@@ -1036,7 +1006,7 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
-      this.investEnergy = va_arg2
+      this.cancels = va_arg2
       } 
     { 
       var va_arg2 
@@ -1048,14 +1018,65 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
-      this.lossRatios = va_arg2
+      this.results = va_arg2
       } 
+    this.results[0]=this.gdp
     { 
       var va_arg2 
       var i_bag  = []
       var i  = 1
       var g0122  = C_NIT
       while (i <= g0122) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.maxout = va_arg2
+      } 
+    this.maxout[0]=this.gdp
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0123  = C_NIT
+      while (i <= g0123) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.investGrowth = va_arg2
+      } 
+    this.investGrowth[0]=this.investG
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0124  = C_NIT
+      while (i <= g0124) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.investEnergy = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0125  = C_NIT
+      while (i <= g0125) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.lossRatios = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0126  = C_NIT
+      while (i <= g0126) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -1067,8 +1088,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0123  = C_NIT
-      while (i <= g0123) { 
+      var g0127  = C_NIT
+      while (i <= g0127) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -1079,8 +1100,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0124  = C_NIT
-      while (i <= g0124) { 
+      var g0128  = C_NIT
+      while (i <= g0128) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -1090,83 +1111,82 @@ Init () {
     } 
   
   // ----- class method consolidate @ Economy ------------- 
-//  consolidation for a given year
-Consolidate (y) { 
+//  consolidation for a given yearConsolidate (y) { 
     var arg_1 
-    var g0125  = 0
-    for (const g0128 of C_Block.descendants){ 
-      for (const g0127 of g0128.instances){ 
-        var g0126  = g0127.totalConsos[y-1]
-        g0125 = (g0125+g0126)
-        } 
-      } 
-    arg_1 = g0125
-    this.totalConsos[y-1]=arg_1
-    var arg_2 
     var g0129  = 0
     for (const g0132 of C_Block.descendants){ 
       for (const g0131 of g0132.instances){ 
-        var g0130  = g0131.inputs[y-1]
+        var g0130  = g0131.totalConsos[y-1]
         g0129 = (g0129+g0130)
         } 
       } 
-    arg_2 = g0129
-    this.inputs[y-1]=arg_2
-    var arg_3 
+    arg_1 = g0129
+    this.totalConsos[y-1]=arg_1
+    var arg_2 
     var g0133  = 0
     for (const g0136 of C_Block.descendants){ 
       for (const g0135 of g0136.instances){ 
-        var g0134  = g0135.cancels[y-1]
+        var g0134  = g0135.inputs[y-1]
         g0133 = (g0133+g0134)
         } 
       } 
-    arg_3 = g0133
-    this.cancels[y-1]=arg_3
-    var arg_4 
+    arg_2 = g0133
+    this.inputs[y-1]=arg_2
+    var arg_3 
     var g0137  = 0
     for (const g0140 of C_Block.descendants){ 
       for (const g0139 of g0140.instances){ 
-        var g0138  = g0139.results[y-1]
+        var g0138  = g0139.cancels[y-1]
         g0137 = (g0137+g0138)
         } 
       } 
-    arg_4 = g0137
-    this.results[y-1]=arg_4
-    var arg_5 
+    arg_3 = g0137
+    this.cancels[y-1]=arg_3
+    var arg_4 
     var g0141  = 0
     for (const g0144 of C_Block.descendants){ 
       for (const g0143 of g0144.instances){ 
-        var g0142  = g0143.maxout[y-1]
+        var g0142  = g0143.results[y-1]
         g0141 = (g0141+g0142)
         } 
       } 
-    arg_5 = g0141
-    this.maxout[y-1]=arg_5
-    var arg_6 
+    arg_4 = g0141
+    this.results[y-1]=arg_4
+    var arg_5 
     var g0145  = 0
     for (const g0148 of C_Block.descendants){ 
       for (const g0147 of g0148.instances){ 
-        var g0146  = g0147.investGrowth[y-1]
+        var g0146  = g0147.maxout[y-1]
         g0145 = (g0145+g0146)
         } 
       } 
-    arg_6 = g0145
-    this.investGrowth[y-1]=arg_6
-    var arg_7 
+    arg_5 = g0145
+    this.maxout[y-1]=arg_5
+    var arg_6 
     var g0149  = 0
     for (const g0152 of C_Block.descendants){ 
       for (const g0151 of g0152.instances){ 
-        var g0150  = g0151.investEnergy[y-1]
+        var g0150  = g0151.investGrowth[y-1]
         g0149 = (g0149+g0150)
         } 
       } 
-    arg_7 = g0149
+    arg_6 = g0149
+    this.investGrowth[y-1]=arg_6
+    var arg_7 
+    var g0153  = 0
+    for (const g0156 of C_Block.descendants){ 
+      for (const g0155 of g0156.instances){ 
+        var g0154  = g0155.investEnergy[y-1]
+        g0153 = (g0153+g0154)
+        } 
+      } 
+    arg_7 = g0153
     this.investEnergy[y-1]=arg_7
     var loss  = 0
     var disaster  = 0
     var result  = 0
-    for (const g0153 of C_Block.descendants){ 
-      for (const w of g0153.instances){ 
+    for (const g0157 of C_Block.descendants){ 
+      for (const w of g0157.instances){ 
         result = (result+w.results[y-1])
         disaster = (disaster+(w.results[y-1]*(w.disasterRatios[y-1]/(1-w.disasterRatios[y-1]))))
         loss = (loss+(w.results[y-1]*w.lossRatios[y-1]))
@@ -1180,8 +1200,7 @@ Consolidate (y) {
 
 
 // class file for Block in module gw1 // 
-//  code is cleaner if we call the economy of a Consumer a Block
-class Block extends Economy{ 
+//  code is cleaner if we call the economy of a Consumer a Blockclass Block extends Economy{ 
    
   constructor(name) { 
     super(name)
@@ -1206,8 +1225,7 @@ class Block extends Economy{
   
   // ----- class method economyRatio @ Block ------------- 
 //  GW4 : the economy dependency (gdp -> Gtoe) is made of local and export influence
-//  this is a multiplicative factor (applied to inital state)
-EconomyRatio (y) { 
+//  this is a multiplicative factor (applied to inital state)EconomyRatio (y) { 
     if (y == 2) { 
       return  1.02
       } else {
@@ -1216,50 +1234,45 @@ EconomyRatio (y) {
     } 
   
   // ----- class method localEconomyRatio @ Block ------------- 
-//  local influence is GDP weighted by inner zone trade
-LocalEconomyRatio (y) { 
+//  local influence is GDP weighted by inner zone tradeLocalEconomyRatio (y) { 
     return  (this.EconomyRatio(y)*this.InnerTrade())
     } 
   
   // ----- class method globalEconomyRatio @ Block ------------- 
-//  export influence from other block to which w is exporting (assuming w does not protect its frontiers)  
+//  [3] export influence from other block to which w is exporting (assuming w does not protect its frontiers)  
 //  v5: changed economyRatio to w (the health of the importing economy)
 //  cf comments in log.cl this is a differential equation, what is returned is (1 + dx/x) 
-//           dE/E = dLocal/Local x (Local/E = innerTrade) + dExport/Export x (Export/E) + dImport/Import x (Import / E)
-GlobalEconomyRatio (y) { 
+//           dE/E = dLocal/Local x (Local/E = innerTrade) + dExport/Export x (Export/E) + dImport/Import x (Import / E)GlobalEconomyRatio (y) { 
     return  ((this.LocalEconomyRatio(y)+this.OuterCommerceRatio(y))+importReductionRatio_Block1(this,y))
     } 
   
   // ----- class method outerCommerceRatio @ Block ------------- 
-//  returns the weighted sum of growth that is associated to exports (from x to other w2 that are growing, modulo trade barriers )
-OuterCommerceRatio (y) { 
+//  returns the weighted sum of growth that is associated to exports (from x to other w2 that are growing, modulo trade barriers )OuterCommerceRatio (y) { 
     var Result 
-    var g0172  = 0
-    for (const g0175 of C_Block.descendants){ 
-      for (const g0174 of g0175.instances){ 
-        if (g0174 != this) { 
-          var g0173  = ((g0174.EconomyRatio(y)*C_pb.trade[this.Index()-1][g0174.Index()-1])*(1+exportReductionRatio_Block2(this,g0174,y)))
-          g0172 = (g0172+g0173)
+    var g0176  = 0
+    for (const g0179 of C_Block.descendants){ 
+      for (const g0178 of g0179.instances){ 
+        if (g0178 != this) { 
+          var g0177  = ((g0178.EconomyRatio(y)*C_pb.trade[this.Index()-1][g0178.Index()-1])*(1+exportReductionRatio_Block2(this,g0178,y)))
+          g0176 = (g0176+g0177)
           } 
         } 
       } 
-    Result = g0172
+    Result = g0176
     return Result
     } 
   
   // ----- class method importTradeRatio @ Block ------------- 
-//  trade from w2 -> w expressed as a fraction of w gdp (hence the 3rd term)
-ImportTradeRatio (w2,y) { 
+//  trade from w2 -> w expressed as a fraction of w gdp (hence the 3rd term)ImportTradeRatio (w2,y) { 
     return  ((this.EconomyRatio(y)*C_pb.trade[w2.Index()-1][this.Index()-1])*(w2.gdp/this.gdp))
     } 
   
   // ----- class method tradeImportFactors @ Block ------------- 
-//  book keeping
-TradeImportFactors (y) { 
+//  book keepingTradeImportFactors (y) { 
     var Result 
     var w2_bag  = []
-    for (const g0176 of C_Block.descendants){ 
-      for (const w2 of g0176.instances){ 
+    for (const g0180 of C_Block.descendants){ 
+      for (const w2 of g0180.instances){ 
         if (w2 != this) { 
           kernel.add_list(w2_bag,this.openTrade[w2.Index()-1])
           } 
@@ -1275,9 +1288,7 @@ TradeImportFactors (y) {
     } 
   
   // ----- class method populationRatio @ Block ------------- 
-//  new in GWDG : integrate a CBAM factor - reduction of trade   
-//  the second term is, as before, based on  growth
-PopulationRatio (y) { 
+//  [2]  the second term is, as before, based on  growthPopulationRatio (y) { 
     var Result 
     var c  = this.describes
     var p0  = c.population.Get(yearF(1))
@@ -1288,8 +1299,7 @@ PopulationRatio (y) {
   
   // ----- class method populationGrowth @ Block ------------- 
 //  differential : one year versus the previous one
-//  in CCEM v5, we take into account the effect of pain
-PopulationGrowth (y) { 
+//  in CCEM v5, we take into account the effect of painPopulationGrowth (y) { 
     var Result 
     var arg_1 
     if (y == 2) { 
@@ -1303,22 +1313,27 @@ PopulationGrowth (y) {
     } 
   
   // ----- class method newMaxout @ Block ------------- 
-//  this computes the maxout expected at year y based on previous year, poopulation growth and growth invest
+//  [1] [4] this computes the maxout expected at year y based on previous year, poopulation growth and growth invest
 //  we use the heuristic (expected damage on GDP) that we differentiate between two years and multiply by 3 to 
-//  compensate the integration factor (GDP growing and disaster ratio growing, so final compound effect needs to be multiplied by 3)
-NewMaxout (y) { 
-    return  (((this.maxout[(y-1)-1]*this.PopulationGrowth(y))+(this.investGrowth[(y-1)-1]*this.roI.Get(yearF(y))))*(1-((0 <= (3*(this.disasterRatios[y-1]-this.disasterRatios[(y-1)-1]))) ? 
-      (3*(this.disasterRatios[y-1]-this.disasterRatios[(y-1)-1])) :
-      0)))
+//  compensate the integration factor (GDP growing and disaster ratio growing, so final compound effect needs to be multiplied by 3)NewMaxout (y) { 
+    return  (((this.maxout[(y-1)-1]*this.PopulationGrowth(y))+(this.investGrowth[(y-1)-1]*this.roI.Get(yearF(y))))*(1-this.DisasterYearly(y)))
+    } 
+  
+  // ----- class method disasterYearly @ Block ------------- 
+  DisasterYearly (y) { 
+    if (0 <= (5*(this.disasterRatios[y-1]-this.disasterRatios[(y-1)-1]))) { 
+      return  (5*(this.disasterRatios[y-1]-this.disasterRatios[(y-1)-1]))
+      } else {
+      return  0
+      } 
     } 
   
   // ----- class method consumes @ Block ------------- 
-//  very simple economical equation of the world :)
+//  [2] [3] [4] [6] very simple economical equation of a regional economy (Block)
 //  note : in GW3 we have one world economy, in GW4 we may separate
 //  (a) we take the inverst into account to comput w.maxout
 //  (b) we take the energy consumption cancellation into account
-//  (c) we take the GW distasters into account
-Consumes (y) { 
+//  (c) we take the GW distasters into accountConsumes (y) { 
     var e  = C_pb.earth
     var t  = e.temperatures[(y-1)-1]
     var iv  = this.investGrowth[(y-1)-1]
@@ -1326,12 +1341,14 @@ Consumes (y) {
     this.disasterRatios[y-1]=kernel.max_float(this.disasterRatios[(y-1)-1],this.describes.disasterLoss.Get((t-e.avgCentury)))
     this.maxout[y-1]=this.NewMaxout(y)
     this.tradeFactors[y-1]=this.TradeImportFactors(y)
-    e.gdpLosses[y-1]=(e.gdpLosses[y-1]+(this.maxout[y-1]*this.disasterRatios[y-1]))
+    e.gdpLosses[y-1]=(e.gdpLosses[y-1]+(this.maxout[y-1]*this.DisasterYearly(y)))
     
     
     
     this.lossRatios[y-1]=this.ImpactFromCancel(y)
     this.results[y-1]=((this.maxout[y-1]*(1-this.lossRatios[y-1]))*((1+importReductionRatio_Block1(this,y))+exportReductionRatio_Block1(this,y)))
+    
+    
     if (C_TESTC == this.describes) { 
       kernel.PRINC("[")
       kernel.print_any(year_I(y))
@@ -1349,38 +1366,37 @@ Consumes (y) {
     var r2  = this.results[y-1]
     var ix  = 0
     
-    ix = (((r2*this.iRevenue)*(1-this.lossRatios[y-1]))*(1-this.describes.MarginReduction(y)))
+    ix = ((((r2*this.iRevenue)*(1-this.lossRatios[y-1]))*(1-this.describes.MarginReduction(y)))*(1-this.DisasterYearly(y)))
     var arg_1 
     var arg_2 
-    var g0181  = 0
-    for (const g0184 of C_Consumer.descendants){ 
-      for (const g0183 of g0184.instances){ 
-        var g0182  = g0183.carbonTaxes[y-1]
-        g0181 = (g0181+g0182)
+    var g0185  = 0
+    for (const g0188 of C_Consumer.descendants){ 
+      for (const g0187 of g0188.instances){ 
+        var g0186  = g0187.carbonTaxes[y-1]
+        g0185 = (g0185+g0186)
         } 
       } 
-    arg_2 = g0181
+    arg_2 = g0185
     arg_1 = (invE-arg_2)
     invE = kernel.max_float(0,arg_1)
     this.investGrowth[y-1]=(ix-invE)
     } 
   
   // ----- class method impactFromCancel @ Block ------------- 
-//  GW4: fraction of the maxoutput that is used for a block (vs cancelled)
+//  [5] GW4: fraction of the maxoutput that is used for a block (vs cancelled)
 //  1.0 if no impact, 0 if 100% cancelled
-//  cancel rate is transformed into impact for each zone, modulo redistribution policy
-ImpactFromCancel (y) { 
+//  cancel rate is transformed into impact for each zone, modulo redistribution policyImpactFromCancel (y) { 
     var Result 
     var s_energy  = 0
     var s_cancel  = 0
     var s_control  = 0
     var c  = this.describes
     var conso 
-    var g0215  = 0
-    for (const g0216 of c.consos[y-1]){ 
-      g0215 = (g0215+g0216)
+    var g0219  = 0
+    for (const g0220 of c.consos[y-1]){ 
+      g0219 = (g0219+g0220)
       } 
-    conso = g0215
+    conso = g0219
     var cancel  = c.SumCancels(y)
     var saving  = c.SumSavings(y)
     var ratio  = (cancel/((conso+cancel)+saving))
@@ -1391,19 +1407,17 @@ ImpactFromCancel (y) {
     } 
   
   // ----- class method steelConsumption @ Block ------------- 
-//  computes the steel consumption from gdp
-SteelConsumption (y) { 
+//  [7] computes the steel consumption from gdpSteelConsumption (y) { 
     this.ironConsos[y-1]=(this.results[y-1]/this.ironDriver.Get(yearF(y)))
      false
     } 
   
   // ----- class method innerTrade @ Block ------------- 
-//  fraction of gdp that is not linked to external trade
-InnerTrade () { 
+//  fraction of gdp that is not linked to external tradeInnerTrade () { 
     var Result 
     var p  = 1
-    for (const g0217 of C_Block.descendants){ 
-      for (const w2 of g0217.instances){ 
+    for (const g0221 of C_Block.descendants){ 
+      for (const w2 of g0221.instances){ 
         if (w2 != this) { 
           p = (p-C_pb.trade[this.Index()-1][w2.Index()-1])
           } 
@@ -1417,8 +1431,7 @@ InnerTrade () {
 
 
 // class file for Strategy in module gw1 // 
-//  a strategy is a GTES (game theory) description of the player
-class Strategy extends kernel.ClaireObject{ 
+//  a strategy is a GTES (game theory) description of the playerclass Strategy extends kernel.ClaireObject{ 
    
   constructor() { 
     super()
@@ -1431,8 +1444,7 @@ class Strategy extends kernel.ClaireObject{
     } 
   
   // ----- class method self_print @ Strategy ------------- 
-//  prints a strategy
-SelfPrint () { 
+//  prints a strategySelfPrint () { 
     kernel.PRINC("strategy(Gdp:")
     kernel.printFDigit_float((this.targetGdp*100),1)
     kernel.PRINC("x")
@@ -1452,8 +1464,7 @@ SelfPrint () {
 
 
 // class file for Consumer in module gw1 // 
-//  each bloc is a group of countries (BRIC, USEurope, ...)
-class Consumer extends kernel.ClaireThing{ 
+//  each bloc is a group of countries (BRIC, USEurope, ...)class Consumer extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -1475,7 +1486,9 @@ class Consumer extends kernel.ClaireThing{
     this.protectionismFactor = 0
     this.startNeeds = []
     this.needs = []
+    this.needs1 = []
     this.consos = []
+    this.sellPrices = []
     this.ePWhs = []
     this.eDeltas = []
     this.co2Emissions = []
@@ -1494,8 +1507,7 @@ class Consumer extends kernel.ClaireThing{
     } 
   
   // ----- class method tactical @ Consumer ------------- 
-//  sets the tactic for a consumer
-Tactical (tStart,tFromPain,tCancel,pStart,tProtect,tTax) { 
+//  sets the tactic for a consumerTactical (tStart,tFromPain,tCancel,pStart,tProtect,tTax) { 
     this.transitionStart = tStart
     this.transitionFromPain = tFromPain
     this.cancelFromPain = tCancel
@@ -1505,8 +1517,7 @@ Tactical (tStart,tFromPain,tCancel,pStart,tProtect,tTax) {
     } 
   
   // ----- class method productivityLoss @ Consumer ------------- 
-//  the loss of productivity is a linear function of the pain level
-ProductivityLoss (y) { 
+//  the loss of productivity is a linear function of the pain levelProductivityLoss (y) { 
     var Result 
     var p  = this.painLevels[y-1]
     Result = (1-(p*this.productivityFactor))
@@ -1514,23 +1525,21 @@ ProductivityLoss (y) {
     } 
   
   // ----- class method ratio @ Consumer ------------- 
-//  tricky: assign energy needs proportionally ... then add substitution flows 
-Ratio (s) { 
+//  tricky: assign energy needs proportionally ... then add substitution flows Ratio (s) { 
     var Result 
     var i  = s.index
     var arg_1 
-    var g0218  = 0
-    for (const g0219 of this.consumes){ 
-      g0218 = (g0218+g0219)
+    var g0222  = 0
+    for (const g0223 of this.consumes){ 
+      g0222 = (g0222+g0223)
       } 
-    arg_1 = g0218
+    arg_1 = g0222
     Result = (this.consumes[i-1]/arg_1)
     return Result
     } 
   
   // ----- class method transferNeed @ Consumer ------------- 
-//  transfer some energy need from one supplier to the next
-TransferNeed (y,tr,q) { 
+//  transfer some energy need from one supplier to the nextTransferNeed (y,tr,q) { 
     if (tr.from == C_TESTE) { 
       kernel.tformat(">>>> Need transfer of ~F2Gtoe for ~S from ~S to ~S\n",0,[q,
         this,
@@ -1544,18 +1553,20 @@ TransferNeed (y,tr,q) {
     } 
   
   // ----- class method tax @ Consumer ------------- 
-//  one C for 2 O
-Tax (s,y) { 
+//  carbon tax is based on co2 level reached the previous year
+//  in GW3, we add the acceleration pushed by societal reaction
+//  this returns a price in $ for 1 PWh (co2Factor adjusted)
+//  CinCO2 :: (12.0 / 44.0)  // one C for 2 O => no longer in use
+//  tax is CO2 equivalent ! 200$/t means per equivalent of CO2 tonTax (s,y) { 
     if (y <= 2) { 
       return  0
       } else {
-      return  (((this.carbonTax.Get(C_pb.earth.co2Levels[(y-1)-1])+this.taxAcceleration)*s.co2Factor)*C_CinCO2)
+      return  ((this.carbonTax.Get(C_pb.earth.co2Levels[(y-1)-1])+this.taxAcceleration)*s.co2Factor)
       } 
     } 
   
   // ----- class method truePrice @ Consumer ------------- 
-//  this is what the consumer will pay 
-TruePrice (s,y) { 
+//  this is what the consumer will pay TruePrice (s,y) { 
     return  (s.sellPrices[y-1]+this.Tax(s,y))
     } 
   
@@ -1565,9 +1576,7 @@ TruePrice (s,y) {
     var cneed  = this.needs[C_pb.year-1][s.index-1]
     var x1  = this.GetCancel(s,p)
     var x2  = this.PrevSaving(s)
-    var x  = ((0 <= (1-(x1+x2))) ? 
-      (1-(x1+x2)) :
-      0)
+    var x  = kernel.max_float(0,((1-x1)*(1-x2)))
     
     Result = (cneed*x)
     return Result
@@ -1576,8 +1585,7 @@ TruePrice (s,y) {
   // ----- class method getCancel @ Consumer ------------- 
 //  we got rid the "CancelThreat" in version 0.2 to KISS
 //  on the other hand, we had a supplier-sensitive factor to model (for coal !) => mimick price stability which we observe
-//  GW3: added the cancelAcceleration produced by M5 bu
-GetCancel (s,p) { 
+//  GW3: added the cancelAcceleration produced by M5 buGetCancel (s,p) { 
     return  (this.cancel.Get(p)*(1+((s.isa.IsIn(C_FiniteSupplier) == true) ? 
       this.cancelAcceleration :
       0)))
@@ -1585,8 +1593,7 @@ GetCancel (s,p) {
   
   // ----- class method prevSaving @ Consumer ------------- 
 //  savings level at the moment for s  (based on savings level of past year)
-//  note that actual saving is monotonic because we invest and keep saving at the level from the past
-PrevSaving (s) { 
+//  note that actual saving is monotonic because we invest and keep saving at the level from the pastPrevSaving (s) { 
     var Result 
     var y  = C_pb.year
     Result = this.savings[(y-1)-1][s.index-1]
@@ -1594,8 +1601,7 @@ PrevSaving (s) {
     } 
   
   // ----- class method transferRate @ Consumer ------------- 
-//  reads the current transferRate
-TransferRate (tr,y) { 
+//  reads the current transferRateTransferRate (tr,y) { 
     if (y == 0) { 
       return  0
       } else {
@@ -1605,10 +1611,9 @@ TransferRate (tr,y) {
   
   // ----- class method record @ Consumer ------------- 
 //  verbosity for model M3
-//  record the actual savings and substitution - use substitution matrix
+//  [1] record the actual savings and substitution - use substitution matrix
 //  each operation may update the Percent because of monotonicity
-//  cancel is deduced from the actual conso to ensure need = conson + savings + cancel
-Record (s,y) { 
+//  cancel is deduced from the actual conso to ensure need = conson + savings + cancelRecord (s,y) { 
     var i  = s.index
     var cneed  = this.needs[y-1][i-1]
     var p  = this.TruePrice(s,y)
@@ -1618,8 +1623,12 @@ Record (s,y) {
     var missed  = ((cneed*(1-w1))-this.consos[y-1][s.index-1])
     var x  = (missed/cneed)
     
+    this.sellPrices[y-1][s.index-1]=p
     this.Cancels(s,y,missed)
     this.Saves(s,y,w2)
+    if (this.Tax(s,y) >= (C_PMAX*0.8)) { 
+      kernel.MakeError("Carbon Tax got too high ~S",[this.Tax(s,y)]).Close()
+      } 
     for (const tr of s.from){ 
       this.UpdateRate(s,
         tr,
@@ -1633,18 +1642,16 @@ Record (s,y) {
   
   // ----- class method cancels @ Consumer ------------- 
 //  registers the energy consumption of c for s
-//  cancellation : registers an energy consumption cancellation
-Cancels (s,y,x) { 
+//  cancellation : registers an energy consumption cancellationCancels (s,y,x) { 
     this.economy.cancels[y-1]=(this.economy.cancels[y-1]+x)
      this.cancel_Z[y-1][s.index-1]=(x/this.needs[y-1][s.index-1])
     } 
   
   // ----- class method saves @ Consumer ------------- 
 //  store production
-//  saves a given amount of energy (always increasing) - hence we return the actual percent
+//  [2] [5]  saves a given amount of energy (always increasing) - hence we return the actual percent
 //  note that it would be nice to add a delay (more than a year)
-//  GW3: c.saving is a policy table that is assumed to be increasing
-Saves (s,y,w) { 
+//  GW3: c.saving is a policy table that is assumed to be increasingSaves (s,y,w) { 
     var i  = s.index
     var cneed  = this.needs[y-1][i-1]
     var ftech  = kernel._exp_float((1-s.techFactor),y)
@@ -1660,40 +1667,41 @@ Saves (s,y,w) {
     } 
   
   // ----- class method getTransferRate @ Consumer ------------- 
-//  getTransferRate: reads the substitution matrix and multiply by c.transtionFactors[y - 1]
-GetTransferRate (tr,y) { 
+//  getTransferRate: reads the substitution matrix and multiply by c.transtionFactors[y - 1]GetTransferRate (tr,y) { 
     return  (this.transitionFactors[(y-1)-1]*this.subMatrix[tr.index-1].Get(yearF(y)))
     } 
   
   // ----- class method updateRate @ Consumer ------------- 
-//  monotonic update of the transferRate substitute a fraction from one energy source to another
+//  [3] [6] monotonic update of the transferRate substitute a fraction from one energy source to another
 //  note the monotonic behavior, we return the actual Percentage !
-//  in v0.3 we
-UpdateRate (s1,tr,y,cneed) { 
+//  in v0.3 weUpdateRate (s1,tr,y,consumed) { 
     var i  = tr.index
     var s2  = tr.to
     var ftech  = kernel._exp_float((1-s2.techFactor),y)
     var w1  = this.TransferRate(tr,(y-1))
     var w2  = kernel.max_float(w1,(this.transitionFactors[(y-1)-1]*this.GetTransferRate(tr,y)))
-    var w3  = kernel.min_float(w2,(w1+s2.MaxGrowthRate()))
-    this.substitutions[y-1][i-1]=(w1*cneed)
-    this.transferRates[y-1][i-1]=w3
-    s2.addedCapacity = (s2.addedCapacity+((w3-w1)*cneed))
-    s2.additions[y-1]=(s2.additions[y-1]+((w3-w1)*cneed))
+    var w3  = applyMaxGrowthRate(w1,w2,s2,y)
+    this.substitutions[y-1][i-1]=(w1*consumed)
+    this.transferRates[y-1][i-1]=((1 <= w3) ? 
+      1 :
+      w3)
+    s2.addedCapacity = (s2.addedCapacity+((w3-w1)*consumed))
+    s2.additions[y-1]=(s2.additions[y-1]+((w3-w1)*consumed))
     
-    this.transferFlows[y-1][i-1]=(this.transferFlows[y-1][i-1]+((w3-w1)*cneed))
-    this.ePWhs[y-1]=(this.ePWhs[y-1]-((w1*cneed)*this.ETransferRatio(s1,s2,tr.heat_Z)))
-    this.eDeltas[y-1]=(this.eDeltas[y-1]+((w1*cneed)*this.ETransferRatio(s1,s2,tr.heat_Z)))
+    
+    this.transferFlows[y-1][i-1]=(this.transferFlows[y-1][i-1]+((w3-w1)*consumed))
+    this.ePWhs[y-1]=(this.ePWhs[y-1]-((w1*consumed)*this.ETransferRatio(s1,s2,tr.heat_Z)))
+    this.eDeltas[y-1]=(this.eDeltas[y-1]+((w1*consumed)*this.ETransferRatio(s1,s2,tr.heat_Z)))
     if ((s2 == C_TESTE) || 
         (this == C_TESTC)) { 
       if (C_TALK <= kernel.ClEnv.verbose) { 
         kernel.tformat("[~A:~F2] ~S transfer ~F2 PWh(~F%) [~F% now on -> add ~F3] of ~S to ~S [matrix ->~F%]\n",C_TALK,[year_I(y),
           s2.addedCapacity,
           this,
-          (w1*cneed),
+          (w1*consumed),
           w1,
           w3,
-          ((w3-w1)*cneed),
+          ((w3-w1)*consumed),
           s1,
           tr.to,
           this.GetTransferRate(tr,y)])
@@ -1701,13 +1709,12 @@ UpdateRate (s1,tr,y,cneed) {
       
       } 
     
-    this.economy.investEnergy[y-1]=(this.economy.investEnergy[y-1]+(((((w3-w1)*cneed)*s1.investPrice)*ftech)*steelFactor_Supplier2(s1,y)))
+    this.economy.investEnergy[y-1]=(this.economy.investEnergy[y-1]+(((((w3-w1)*consumed)*s1.investPrice)*ftech)*steelFactor_Supplier2(s1,y)))
     } 
   
   // ----- class method eTransferRatio @ Consumer ------------- 
-//  gwdg : when using the static eRatio of 2010, we make an error that we must fix
-//  r1: elecRate of s1, e2: elecRate of s2, h: heatRate of tr
-ETransferRatio (s1,s2,h) { 
+//  [6] gwdg : when using the static eRatio of 2010, we make an error that we must fix
+//  r1: elecRate of s1, e2: elecRate of s2, h: heatRate of trETransferRatio (s1,s2,h) { 
     var Result 
     var r1  = (1-s1.heat_Z)
     var r2  = (1-s2.heat_Z)
@@ -1719,66 +1726,14 @@ ETransferRatio (s1,s2,h) {
     return Result
     } 
   
-  // ----- class method sumNeeds @ Consumer ------------- 
-//  four utilities
-SumNeeds (y) { 
-    var Result 
-    var g0226  = 0
-    for (const g0227 of this.needs[y-1]){ 
-      g0226 = (g0226+g0227)
-      } 
-    Result = g0226
-    return Result
-    } 
-  
-  // ----- class method sumConsos @ Consumer ------------- 
-  SumConsos (y) { 
-    var Result 
-    var g0228  = 0
-    for (const g0229 of this.consos[y-1]){ 
-      g0228 = (g0228+g0229)
-      } 
-    Result = g0228
-    return Result
-    } 
-  
-  // ----- class method sumCancels @ Consumer ------------- 
-  SumCancels (y) { 
-    var Result 
-    var g0230  = 0
-    for (const g0233 of C_Supplier.descendants){ 
-      for (const g0232 of g0233.instances){ 
-        var g0231  = (this.needs[y-1][g0232.index-1]*this.cancel_Z[y-1][g0232.index-1])
-        g0230 = (g0230+g0231)
-        } 
-      } 
-    Result = g0230
-    return Result
-    } 
-  
-  // ----- class method sumSavings @ Consumer ------------- 
-  SumSavings (y) { 
-    var Result 
-    var g0234  = 0
-    for (const g0237 of C_Supplier.descendants){ 
-      for (const g0236 of g0237.instances){ 
-        var g0235  = (this.needs[y-1][g0236.index-1]*this.savings[y-1][g0236.index-1])
-        g0234 = (g0234+g0235)
-        } 
-      } 
-    Result = g0234
-    return Result
-    } 
-  
   // ----- class method marginReduction @ Consumer ------------- 
-//  computes the margin impact of energy price increase, weighted avertage over energy sources
-MarginReduction (y) { 
+//  computes the margin impact of energy price increase, weighted avertage over energy sourcesMarginReduction (y) { 
     var Result 
     var s_energy  = 0
     var margin_impact  = 0
     var s_price  = 0
-    for (const g0238 of C_Supplier.descendants){ 
-      for (const s of g0238.instances){ 
+    for (const g0230 of C_Supplier.descendants){ 
+      for (const s of g0230.instances){ 
         var p  = this.TruePrice(s,y)
         var oep  = s.OilEquivalent(p)
         var conso  = this.consos[y-1][s.index-1]
@@ -1798,8 +1753,7 @@ MarginReduction (y) {
 //  note: the techfactor is only applied to energy, because the model does not account for other resources
 //  (water, metals, ...). The assumption is that adding more control loops (with duality of finite resources 
 //   and recycling / savings with tech) would simply add complexity.      
-//  computes the cancel ratio for one zone
-CancelRatio (y) { 
+//  computes the cancel ratio for one zoneCancelRatio (y) { 
     var Result 
     var conso  = this.economy.totalConsos[y-1]
     var cancel  = this.economy.cancels[y-1]
@@ -1808,8 +1762,7 @@ CancelRatio (y) {
     } 
   
   // ----- class method redirection @ Consumer ------------- 
-//  max transition acceleration compared to best plan
-Redirection (y,pain) { 
+//  max transition acceleration compared to best planRedirection (y,pain) { 
     this.satisfactions[y-1]=this.ComputeSatisfaction(y)
     this.taxAcceleration = ((5000*this.taxFromPain)*pain)
     this.cancelAcceleration = (this.cancelFromPain*pain)
@@ -1822,22 +1775,21 @@ Redirection (y,pain) {
   
   // ----- class method taxRate @ Consumer ------------- 
 //  carbon tax rate for a consumer : divide the money by the fossil fuel consumption
-//  return $ / Gtep
-TaxRate (y) { 
+//  return $ / GtepTaxRate (y) { 
     var Result 
     var t  = this.carbonTaxes[y-1]
     if (t > 0) { 
       var arg_1 
       var arg_2 
       var arg_3 
-      var g0239  = 0
-      for (const g0242 of C_FiniteSupplier.descendants){ 
-        for (const g0241 of g0242.instances){ 
-          var g0240  = this.consos[y-1][g0241.index-1]
-          g0239 = (g0239+g0240)
+      var g0231  = 0
+      for (const g0234 of C_FiniteSupplier.descendants){ 
+        for (const g0233 of g0234.instances){ 
+          var g0232  = this.consos[y-1][g0233.index-1]
+          g0231 = (g0231+g0232)
           } 
         } 
-      arg_3 = g0239
+      arg_3 = g0231
       arg_2 = perMWh(arg_3)
       arg_1 = (t/arg_2)
       Result = (1000*arg_1)
@@ -1848,8 +1800,7 @@ TaxRate (y) {
     } 
   
   // ----- class method painFromCancel @ Consumer ------------- 
-//  level of pain derived from cancelRate
-PainFromCancel (y) { 
+//  [3] level of pain derived from cancelRatePainFromCancel (y) { 
     var Result 
     var cr  = this.CancelRatio(y)
     var pain  = C_pb.earth.painCancel.Get(cr)
@@ -1859,11 +1810,10 @@ PainFromCancel (y) {
     } 
   
   // ----- class method painFromResults @ Consumer ------------- 
-//  level of pain derived from cancelRate
+//  [3] level of pain derived from Economy resuts
 //  notes: 
 //    - redistriction policy only applies to energy - because of the "one world economy" assumption
-//    - we should factor in the 
-PainFromResults (y) { 
+//    - we should factor in the PainFromResults (y) { 
     var Result 
     var w  = C_pb.world.all
     var r1  = w.results[(y-1)-1]
@@ -1876,8 +1826,7 @@ PainFromResults (y) {
   
   // ----- class method computeSatisfaction @ Consumer ------------- 
 //  computes the satisfaction level of a consumer versus its objective
-//  we estimate the 2100 value for GDP, CO2 and pain with a linear interpolation
-ComputeSatisfaction (y) { 
+//  we estimate the 2100 value for GDP, CO2 and pain with a linear interpolationComputeSatisfaction (y) { 
     var Result 
     var strat  = this.objective
     var gdpTarget  = (this.economy.results[0]*kernel._exp_float((1+strat.targetGdp),(y-1)))
@@ -1893,15 +1842,64 @@ ComputeSatisfaction (y) {
     return Result
     } 
   
-  // ----- class method allNeed @ Consumer ------------- 
-//  combine for all suppliers  (used in hist(c:Consumer))
-AllNeed (y) { 
+  // ----- class method sumNeeds @ Consumer ------------- 
+//  four utilitiesSumNeeds (y) { 
+    var Result 
+    var g0237  = 0
+    for (const g0238 of this.needs[y-1]){ 
+      g0237 = (g0237+g0238)
+      } 
+    Result = g0237
+    return Result
+    } 
+  
+  // ----- class method sumConsos @ Consumer ------------- 
+  SumConsos (y) { 
+    var Result 
+    var g0239  = 0
+    for (const g0240 of this.consos[y-1]){ 
+      g0239 = (g0239+g0240)
+      } 
+    Result = g0239
+    return Result
+    } 
+  
+  // ----- class method sumCancels @ Consumer ------------- 
+  SumCancels (y) { 
+    var Result 
+    var g0241  = 0
+    for (const g0244 of C_Supplier.descendants){ 
+      for (const g0243 of g0244.instances){ 
+        var g0242  = (this.needs[y-1][g0243.index-1]*this.cancel_Z[y-1][g0243.index-1])
+        g0241 = (g0241+g0242)
+        } 
+      } 
+    Result = g0241
+    return Result
+    } 
+  
+  // ----- class method sumSavings @ Consumer ------------- 
+  SumSavings (y) { 
     var Result 
     var g0245  = 0
-    for (const g0246 of this.needs[y-1]){ 
-      g0245 = (g0245+g0246)
+    for (const g0248 of C_Supplier.descendants){ 
+      for (const g0247 of g0248.instances){ 
+        var g0246  = (this.needs[y-1][g0247.index-1]*this.savings[y-1][g0247.index-1])
+        g0245 = (g0245+g0246)
+        } 
       } 
     Result = g0245
+    return Result
+    } 
+  
+  // ----- class method allNeed @ Consumer ------------- 
+//  combine for all suppliers  (used in hist(c:Consumer))AllNeed (y) { 
+    var Result 
+    var g0249  = 0
+    for (const g0250 of this.needs[y-1]){ 
+      g0249 = (g0249+g0250)
+      } 
+    Result = g0249
     return Result
     } 
   
@@ -1913,34 +1911,32 @@ AllNeed (y) {
   // ----- class method allSaving @ Consumer ------------- 
   AllSaving (y) { 
     var Result 
-    var g0247  = 0
-    for (const g0248 of this.savings[y-1]){ 
-      g0247 = (g0247+g0248)
+    var g0251  = 0
+    for (const g0252 of this.savings[y-1]){ 
+      g0251 = (g0251+g0252)
       } 
-    Result = g0247
+    Result = g0251
     return Result
     } 
   
   // ----- class method allConso @ Consumer ------------- 
   AllConso (y) { 
     var Result 
-    var g0249  = 0
-    for (const g0250 of this.consos[y-1]){ 
-      g0249 = (g0249+g0250)
+    var g0253  = 0
+    for (const g0254 of this.consos[y-1]){ 
+      g0253 = (g0253+g0254)
       } 
-    Result = g0249
+    Result = g0253
     return Result
     } 
   
   // ----- class method savingRatio @ Consumer ------------- 
-//  saving ratios
-SavingRatio (y) { 
+//  saving ratiosSavingRatio (y) { 
     return  (this.SumSavings(y)/this.SumNeeds(y))
     } 
   
   // ----- class method energyIntensity @ Consumer ------------- 
-//  same for a zone
-EnergyIntensity (y) { 
+//  same for a zoneEnergyIntensity (y) { 
     return  (TWh(this.SumConsos(y))/(1000*this.economy.results[y-1]))
     } 
   
@@ -1957,13 +1953,12 @@ EnergyIntensity (y) {
     } 
   
   // ----- class method init @ Consumer ------------- 
-//  consumer initialization (and reinit)
-Init () { 
+//  consumer initialization (and reinit)Init () { 
     { 
       var va_arg2 
       var s_bag  = []
-      for (const g0259 of C_Supplier.descendants){ 
-        for (const s of g0259.instances){ 
+      for (const g0263 of C_Supplier.descendants){ 
+        for (const s of g0263.instances){ 
           kernel.add_list(s_bag,(this.consumes[s.index-1]/(1-this.cancel.Get(s.price))))
           } 
         } 
@@ -1974,8 +1969,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0260  = C_NIT
-      while (i <= g0260) { 
+      var g0264  = C_NIT
+      while (i <= g0264) { 
         kernel.add_list(i_bag,[])
         i = (i+1)
         } 
@@ -1987,12 +1982,24 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0261  = C_NIT
-      while (i <= g0261) { 
+      var g0265  = C_NIT
+      while (i <= g0265) { 
+        kernel.add_list(i_bag,[])
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.needs1 = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0266  = C_NIT
+      while (i <= g0266) { 
         var arg_1 
         var s_bag  = []
-        for (const g0262 of C_Supplier.descendants){ 
-          for (const s of g0262.instances){ 
+        for (const g0267 of C_Supplier.descendants){ 
+          for (const s of g0267.instances){ 
             kernel.add_list(s_bag,0)
             } 
           } 
@@ -2008,17 +2015,37 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0263  = C_NIT
-      while (i <= g0263) { 
+      var g0268  = C_NIT
+      while (i <= g0268) { 
         var arg_2 
         var s_bag  = []
-        for (const g0264 of C_Supplier.descendants){ 
-          for (const s of g0264.instances){ 
+        for (const g0269 of C_Supplier.descendants){ 
+          for (const s of g0269.instances){ 
             kernel.add_list(s_bag,0)
             } 
           } 
         arg_2 = s_bag
         kernel.add_list(i_bag,arg_2)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.sellPrices = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0270  = C_NIT
+      while (i <= g0270) { 
+        var arg_3 
+        var s_bag  = []
+        for (const g0271 of C_Supplier.descendants){ 
+          for (const s of g0271.instances){ 
+            kernel.add_list(s_bag,0)
+            } 
+          } 
+        arg_3 = s_bag
+        kernel.add_list(i_bag,arg_3)
         i = (i+1)
         } 
       va_arg2 = i_bag
@@ -2028,17 +2055,17 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0265  = C_NIT
-      while (i <= g0265) { 
-        var arg_3 
+      var g0272  = C_NIT
+      while (i <= g0272) { 
+        var arg_4 
         var s_bag  = []
-        for (const g0266 of C_Supplier.descendants){ 
-          for (const s of g0266.instances){ 
+        for (const g0273 of C_Supplier.descendants){ 
+          for (const s of g0273.instances){ 
             kernel.add_list(s_bag,0)
             } 
           } 
-        arg_3 = s_bag
-        kernel.add_list(i_bag,arg_3)
+        arg_4 = s_bag
+        kernel.add_list(i_bag,arg_4)
         i = (i+1)
         } 
       va_arg2 = i_bag
@@ -2048,31 +2075,8 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0267  = C_NIT
-      while (i <= g0267) { 
-        var arg_4 
-        var v_list4 
-        var tr 
-        var v_local4 
-        v_list4 = C_pb.transitions
-        arg_4 = new Array(v_list4.length)
-        for (let CLcount = 0; CLcount < v_list4.length; CLcount++){ 
-          tr = v_list4[CLcount]
-          v_local4 = 0
-          arg_4[CLcount] = v_local4
-          } 
-        kernel.add_list(i_bag,arg_4)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.substitutions = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0268  = C_NIT
-      while (i <= g0268) { 
+      var g0274  = C_NIT
+      while (i <= g0274) { 
         var arg_5 
         var v_list4 
         var tr 
@@ -2088,14 +2092,14 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
-      this.transferRates = va_arg2
+      this.substitutions = va_arg2
       } 
     { 
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0269  = C_NIT
-      while (i <= g0269) { 
+      var g0275  = C_NIT
+      while (i <= g0275) { 
         var arg_6 
         var v_list4 
         var tr 
@@ -2111,6 +2115,29 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
+      this.transferRates = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0276  = C_NIT
+      while (i <= g0276) { 
+        var arg_7 
+        var v_list4 
+        var tr 
+        var v_local4 
+        v_list4 = C_pb.transitions
+        arg_7 = new Array(v_list4.length)
+        for (let CLcount = 0; CLcount < v_list4.length; CLcount++){ 
+          tr = v_list4[CLcount]
+          v_local4 = 0
+          arg_7[CLcount] = v_local4
+          } 
+        kernel.add_list(i_bag,arg_7)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
       this.transferFlows = va_arg2
       } 
     this.taxAcceleration = 0
@@ -2119,97 +2146,13 @@ Init () {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0270  = C_NIT
-      while (i <= g0270) { 
+      var g0277  = C_NIT
+      while (i <= g0277) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
       va_arg2 = i_bag
       this.carbonTaxes = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0271  = C_NIT
-      while (i <= g0271) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.painLevels = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0272  = C_NIT
-      while (i <= g0272) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.painWarming = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0273  = C_NIT
-      while (i <= g0273) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.painResults = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0274  = C_NIT
-      while (i <= g0274) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.painEnergy = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0275  = C_NIT
-      while (i <= g0275) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.co2Emissions = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0276  = C_NIT
-      while (i <= g0276) { 
-        kernel.add_list(i_bag,0)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.satisfactions = va_arg2
-      } 
-    { 
-      var va_arg2 
-      var i_bag  = []
-      var i  = 1
-      var g0277  = C_NIT
-      while (i <= g0277) { 
-        kernel.add_list(i_bag,1)
-        i = (i+1)
-        } 
-      va_arg2 = i_bag
-      this.transitionFactors = va_arg2
       } 
     { 
       var va_arg2 
@@ -2221,7 +2164,7 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
-      this.ePWhs = va_arg2
+      this.painLevels = va_arg2
       } 
     { 
       var va_arg2 
@@ -2233,24 +2176,107 @@ Init () {
         i = (i+1)
         } 
       va_arg2 = i_bag
+      this.painWarming = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0280  = C_NIT
+      while (i <= g0280) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.painResults = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0281  = C_NIT
+      while (i <= g0281) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.painEnergy = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0282  = C_NIT
+      while (i <= g0282) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.co2Emissions = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0283  = C_NIT
+      while (i <= g0283) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.satisfactions = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0284  = C_NIT
+      while (i <= g0284) { 
+        kernel.add_list(i_bag,1)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.transitionFactors = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0285  = C_NIT
+      while (i <= g0285) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
+      this.ePWhs = va_arg2
+      } 
+    { 
+      var va_arg2 
+      var i_bag  = []
+      var i  = 1
+      var g0286  = C_NIT
+      while (i <= g0286) { 
+        kernel.add_list(i_bag,0)
+        i = (i+1)
+        } 
+      va_arg2 = i_bag
       this.eDeltas = va_arg2
       } 
-    var arg_7 
-    var g0280  = 0
-    for (const g0283 of C_Supplier.descendants){ 
-      for (const g0282 of g0283.instances){ 
-        var g0281  = (this.consumes[g0282.index-1]*this.ERatio(g0282))
-        g0280 = (g0280+g0281)
+    var arg_8 
+    var g0287  = 0
+    for (const g0290 of C_Supplier.descendants){ 
+      for (const g0289 of g0290.instances){ 
+        var g0288  = (this.consumes[g0289.index-1]*this.ERatio(g0289))
+        g0287 = (g0287+g0288)
         } 
       } 
-    arg_7 = g0280
-    this.ePWhs[0]=arg_7
+    arg_8 = g0287
+    this.ePWhs[0]=arg_8
      this.InitBlock()
     } 
   
   // ----- class method eRatio @ Consumer ------------- 
-//  reads form the initial data the ratio of primary energy used for electricity (vs "heat")
-ERatio (s) { 
+//  reads form the initial data the ratio of primary energy used for electricity (vs "heat")ERatio (s) { 
     return  (this.eSources[s.index-1]/this.consumes[s.index-1])
     } 
   
@@ -2260,19 +2286,19 @@ ERatio (s) {
     w.Init()
     w.ironConsos[0]=(w.gdp/w.ironDriver.Get(yearF(1)))
     var arg_1 
-    var g0316  = 0
-    for (const g0317 of this.consumes){ 
-      g0316 = (g0316+g0317)
+    var g0323  = 0
+    for (const g0324 of this.consumes){ 
+      g0323 = (g0323+g0324)
       } 
-    arg_1 = g0316
+    arg_1 = g0323
     w.totalConsos[0]=arg_1
     w.describes = this
     this.economy = w
     { 
       var va_arg2 
       var w2_bag  = []
-      for (const g0318 of C_Block.descendants){ 
-        for (const w2 of g0318.instances){ 
+      for (const g0325 of C_Block.descendants){ 
+        for (const w2 of g0325.instances){ 
           kernel.add_list(w2_bag,1)
           } 
         } 
@@ -2283,12 +2309,12 @@ ERatio (s) {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0319  = C_NIT
-      while (i <= g0319) { 
+      var g0326  = C_NIT
+      while (i <= g0326) { 
         var arg_2 
         var w2_bag  = []
-        for (const g0320 of C_Block.descendants){ 
-          for (const w2 of g0320.instances){ 
+        for (const g0327 of C_Block.descendants){ 
+          for (const w2 of g0327.instances){ 
             kernel.add_list(w2_bag,1)
             } 
           } 
@@ -2306,8 +2332,7 @@ ERatio (s) {
 
 // class file for WorldClass in module gw1 // 
 //  book-keeping the loss of margin -> impact Invest
-//  we create World as the global economy (sum of block)
-class WorldClass extends kernel.ClaireThing{ 
+//  we create World as the global economy (sum of block)class WorldClass extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -2324,8 +2349,7 @@ class WorldClass extends kernel.ClaireThing{
     } 
   
   // ----- class method reinit @ WorldClass ------------- 
-//  reinit version (refresh data)   
-Reinit (e,c) { 
+//  reinit version (refresh data)   Reinit (e,c) { 
     if (C_pb.earth != null) { 
        reinit_void()
       } else {
@@ -2340,8 +2364,7 @@ Reinit (e,c) {
 //  ********************************************************************
 //  *    Part 4: Gaia                                                  *
 //  ********************************************************************
-//  there is only one earth :)
-class Earth extends kernel.ClaireThing{ 
+//  there is only one earth :)class Earth extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -2359,15 +2382,14 @@ class Earth extends kernel.ClaireThing{
   
   // ----- class method react @ Earth ------------- 
 //  verbosity for model M5
-//  even simpler : computes the CO2 and the temperature,
-//  then (M5) apply the pain to re-evaluate the reactions
-React (y) { 
+//  [1] [2] even simpler : computes the CO2 and the temperature,
+//  then (M5) apply the pain to re-evaluate the reactionsReact (y) { 
     var x  = this.co2Levels[(y-1)-1]
     this.co2Levels[y-1]=(x+(this.co2Emissions[y-1]*this.co2Ratio))
     
     this.temperatures[y-1]=((this.avgTemp-this.warming.Get(this.co2PPM))+this.warming.Get(this.co2Levels[y-1]))
-    for (const g0451 of C_Consumer.descendants){ 
-      for (const c of g0451.instances){ 
+    for (const g0464 of C_Consumer.descendants){ 
+      for (const c of g0464.instances){ 
         var pain_energy  = c.PainFromCancel(y)
         var pain_results  = c.PainFromResults(y)
         var pain_warming  = this.painClimate.Get(this.warming.Get(this.co2Levels[y-1]))
@@ -2394,8 +2416,8 @@ React (y) {
     kernel.PRINC(", tax = ")
     var arg_1 
     var c_bag  = []
-    for (const g0472 of C_Consumer.descendants){ 
-      for (const c of g0472.instances){ 
+    for (const g0485 of C_Consumer.descendants){ 
+      for (const c of g0485.instances){ 
         kernel.add_list(c_bag,c.carbonTax.Get(this.co2Levels[y-1]))
         } 
       } 
@@ -2410,8 +2432,8 @@ React (y) {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0473  = C_NIT
-      while (i <= g0473) { 
+      var g0486  = C_NIT
+      while (i <= g0486) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -2423,8 +2445,8 @@ React (y) {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0474  = C_NIT
-      while (i <= g0474) { 
+      var g0487  = C_NIT
+      while (i <= g0487) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -2435,8 +2457,8 @@ React (y) {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0475  = C_NIT
-      while (i <= g0475) { 
+      var g0488  = C_NIT
+      while (i <= g0488) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -2448,8 +2470,8 @@ React (y) {
       var va_arg2 
       var i_bag  = []
       var i  = 1
-      var g0476  = C_NIT
-      while (i <= g0476) { 
+      var g0489  = C_NIT
+      while (i <= g0489) { 
         kernel.add_list(i_bag,0)
         i = (i+1)
         } 
@@ -2466,8 +2488,7 @@ React (y) {
 //  ********************************************************************
 //  *    Part 5: Experiments                                           *
 //  ********************************************************************
-//  our problem solver object
-class Problem extends kernel.ClaireThing{ 
+//  our problem solver objectclass Problem extends kernel.ClaireThing{ 
    
   constructor(name) { 
     super(name)
@@ -2482,23 +2503,22 @@ class Problem extends kernel.ClaireThing{
     } 
   
   // ----- class method solve @ Problem ------------- 
-//  our cute "solve" - find the intersection of the two curves
-//  find the price that
+//  [6] our cute "solve" - find the intersection of the two curves
+//  find the price that:
 //   (1) minimize the distance between the two curves
 //   (2) if there are ties : pick the highest price ! ( maximize the profits of the seller)
 //  three cases:
 //   (a) there is an intersection -> find the price
 //   (b) production is much higher -> satisfy the demand at lowest price
 //   (c) production is too small -> prices should go higher
-//  currently: raise an error in case (c)
-Solve (s) { 
+//  currently: raise an error in case (c)Solve (s) { 
     var Result 
     var v0  = 1e+10
     var p0  = 0
     var i0  = 1
     var i  = 1
-    var g0477  = C_NIS
-    while (i <= g0477) { 
+    var g0490  = C_NIS
+    while (i <= g0490) { 
       var x  = C_pb.priceRange[i-1]
       var v  = (this.prodCurve[i-1]-this.needCurve[i-1])
       this.debugCurve[i-1]=v
@@ -2518,20 +2538,20 @@ Solve (s) {
       kernel.print_any(s)
       kernel.PRINC(" is ")
       var arg_1 
-      var g0478  = 0
-      for (const g0481 of C_Consumer.descendants){ 
-        for (const g0480 of g0481.instances){ 
-          var g0479  = g0480.needs[C_pb.year-1][s.index-1]
-          g0478 = (g0478+g0479)
+      var g0491  = 0
+      for (const g0494 of C_Consumer.descendants){ 
+        for (const g0493 of g0494.instances){ 
+          var g0492  = g0493.needs[C_pb.year-1][s.index-1]
+          g0491 = (g0491+g0492)
           } 
         } 
-      arg_1 = g0478
+      arg_1 = g0491
       kernel.printFDigit_float(arg_1,2)
       kernel.PRINC("  => ")
       var arg_2 
       var c_bag  = []
-      for (const g0482 of C_Consumer.descendants){ 
-        for (const c of g0482.instances){ 
+      for (const g0495 of C_Consumer.descendants){ 
+        for (const c of g0495.instances){ 
           kernel.add_list(c_bag,[c,c.HowMuch(s,p0)])
           } 
         } 
@@ -2551,8 +2571,8 @@ Solve (s) {
       kernel.PRINC(", tax=")
       kernel.printFDigit_float(s.AvgTax(C_pb.year),2)
       kernel.PRINC("\n")
-      for (const g0483 of C_Consumer.descendants){ 
-        for (const c of g0483.instances){ 
+      for (const g0496 of C_Consumer.descendants){ 
+        for (const c of g0496.instances){ 
           kernel.PRINC("Cancel/save(")
           kernel.print_any(c)
           kernel.PRINC(") = ")
@@ -2581,8 +2601,7 @@ Solve (s) {
     } 
   
   // ----- class method run @ Problem ------------- 
-//  one simulation step
-Run () { 
+//  one simulation stepRun () { 
     var y  = (this.year+1)
     C_pb.year = y
     kernel.tformat("==================================  [~A] =================================== \n",2,[year_I(y)])
@@ -2591,25 +2610,25 @@ Run () {
       C_gw1_DEBUG = 1
       C_gw1_SHOW2 = 1
       } 
-    for (const g0484 of C_Consumer.descendants){ 
-      for (const c of g0484.instances){ 
+    for (const g0497 of C_Consumer.descendants){ 
+      for (const c of g0497.instances){ 
         getNeed_Consumer1(c,y)
         } 
       } 
-    for (const g0485 of C_Supplier.descendants){ 
-      for (const s of g0485.instances){ 
+    for (const g0498 of C_Supplier.descendants){ 
+      for (const s of g0498.instances){ 
         
         s.GetProd(this.year)
         this.ResetNeed()
-        for (const g0486 of C_Consumer.descendants){ 
-          for (const c of g0486.instances){ 
+        for (const g0499 of C_Consumer.descendants){ 
+          for (const c of g0499.instances){ 
             getNeed_Consumer2(c,s,y)
             } 
           } 
         s.sellPrices[y-1]=this.Solve(s)
         s.BalanceEnergy(y)
-        for (const g0487 of C_Consumer.descendants){ 
-          for (const c of g0487.instances){ 
+        for (const g0500 of C_Consumer.descendants){ 
+          for (const c of g0500.instances){ 
             c.Record(s,y)
             } 
           } 
@@ -2625,7 +2644,7 @@ Run () {
       kernel.printFDigit_float(C_pb.world.all.results[y-1],2)
       kernel.PRINC("T$ from ")
       kernel.printFDigit_float(C_pb.world.all.inputs[y-1],2)
-      kernel.PRINC(" energy at ")
+      kernel.PRINC("PWh input at ")
       printEnergyPrices(y)
       kernel.PRINC("\n")
       } 
@@ -2638,8 +2657,8 @@ Run () {
   // ----- class method resetNeed @ Problem ------------- 
   ResetNeed () { 
     var i  = 1
-    var g0494  = C_NIS
-    while (i <= g0494) { 
+    var g0509  = C_NIS
+    while (i <= g0509) { 
       this.needCurve[i-1]=0
       i = (i+1)
       } 
@@ -2677,8 +2696,8 @@ var C_gw1_TESTE
 var C_gw1_TESTC
 var C_gw1_SHOW1
 var C_gw1_SHOW2
-var C_gw1_CinCO2
 var C_gw1_HOW
+var C_gw1_BALANCE
 var C_gw1_SHOW3
 var C_gw1_SHOW4
 var C_gw1_SHOW5
@@ -2742,8 +2761,7 @@ var C_gw1_Gaia
 
 // ----- function from method year! @ integer ------------- 
 //  energy is in PWh
-//  we use a relative index that sarts at 1 for 2010
-function year_I (i) { 
+//  we use a relative index that sarts at 1 for 2010function year_I (i) { 
   return  (2009+i)
   } 
 
@@ -2753,20 +2771,17 @@ function yearF (i) {
   } 
 
 // ----- function from method PWh @ float ------------- 
-//  transforms a Gt of oil equivalent into PWh
-function PWh (x) { 
+//  transforms a Gt of oil equivalent into PWhfunction PWh (x) { 
   return  (x*11.6)
   } 
 
 // ----- function from method perMWh @ float ------------- 
-//  transforms a price per Tep into a price per MWh
-function perMWh (x) { 
+//  transforms a price per Tep into a price per MWhfunction perMWh (x) { 
   return  (x/11.6)
   } 
 
 // ----- function from method affine @ listargs ------------- 
-//  assumes l is a list of pairs (x-i,y-i) and x-i is a strictly increasing sequence
-function affine (l) { 
+//  assumes l is a list of pairs (x-i,y-i) and x-i is a strictly increasing sequencefunction affine (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
@@ -2793,8 +2808,8 @@ function affine (l) {
     l2[CLcount] = v_local1
     } 
   var i  = 2
-  var g0495  = l.length
-  while (i <= g0495) { 
+  var g0510  = l.length
+  while (i <= g0510) { 
     if (l1[(i-1)-1] >= l1[i-1]) { 
       kernel.MakeError("affine params decrease: ~S",[l1]).Close()
       } 
@@ -2819,8 +2834,7 @@ function affine (l) {
   } 
 
 // ----- function from method step @ listargs ------------- 
-//  same code for StepFunction
-function step (l) { 
+//  same code for StepFunctionfunction step (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
@@ -2847,8 +2861,8 @@ function step (l) {
     l2[CLcount] = v_local1
     } 
   var i  = 2
-  var g0496  = l.length
-  while (i <= g0496) { 
+  var g0511  = l.length
+  while (i <= g0511) { 
     if (l1[(i-1)-1] >= l1[i-1]) { 
       kernel.MakeError("step function params decrease: ~S",[l1]).Close()
       } 
@@ -2874,8 +2888,7 @@ function step (l) {
 
 // ----- function from method supplier! @ integer ------------- 
 //  max(delta(capacity) in PWh) is a yearly roadmap (does not only depend on price but volume effects)
-//  access to a supplier from its index - ugly but faster than "exists(s in Supplier ...)"
-function supplier_I (i) { 
+//  access to a supplier from its index - ugly but faster than "exists(s in Supplier ...)"function supplier_I (i) { 
   var Result 
   var n  = kernel.size_class(C_FiniteSupplier)
   Result = ((i <= n) ? 
@@ -2885,8 +2898,7 @@ function supplier_I (i) {
   } 
 
 // ----- function from method makeTransition @ string ------------- 
-//  create a transition (used in test.cl)
-function makeTransition (name,fromIndex,toIndex,h_Z) { 
+//  create a transition (used in test.cl)function makeTransition (name,fromIndex,toIndex,h_Z) { 
   var tr 
   var _CL_obj  = (new Transition()).Is(C_Transition)
   _CL_obj.index = (1+C_pb.transitions.length)
@@ -2901,34 +2913,31 @@ function makeTransition (name,fromIndex,toIndex,h_Z) {
   } 
 
 // ----- function from method EJ @ float ------------- 
-//  tranforms a Gt of oil equivalent into EJ (Exa Joule)
-function EJ (x) { 
-  return  (x*41.86)
+//  tranforms a Gt of oil equivalent into EJ (Exa Joule)function EJ (x) { 
+  return  ((x/11.6)*41.86)
   } 
 
 // ----- function from method TWh @ float ------------- 
-//  transforms a Gt of oil equivalent into TWh (Tera Watt Hour)
-function TWh (x) { 
+//  transforms a Gt of oil equivalent into TWh (Tera Watt Hour)function TWh (x) { 
   return  (x*11630)
   } 
 
 // ----- function from method C @ integer ------------- 
 //  record level of satisfaction for each year
-//  find a consumer by its index
-function C (i) { 
+//  find a consumer by its indexfunction C (i) { 
   var Result 
   var c_some  = null
-  for (const g0497 of C_Consumer.descendants){ 
-    var g0498 
-    g0498= false
-    for (const c of g0497.instances){ 
+  for (const g0512 of C_Consumer.descendants){ 
+    var g0513 
+    g0513= false
+    for (const c of g0512.instances){ 
       if (c.index == i) { 
         c_some = c
-        g0498 = c_some
-        break // loop = tuple("g0498", any)
+        g0513 = c_some
+        break // loop = tuple("g0513", any)
         } 
       } 
-    if (g0498 == true) { 
+    if (g0513 == true) { 
       
       break // loop = tuple("niet", any)
       } 
@@ -2938,8 +2947,7 @@ function C (i) {
   } 
 
 // ----- function from method strategy @ float ------------- 
-//  constructor for Strategy
-function strategy (tGdp,tCO2,tHappy,wGDP,wCO2) { 
+//  constructor for Strategyfunction strategy (tGdp,tCO2,tHappy,wGDP,wCO2) { 
   var Result 
   var _CL_obj  = (new Strategy()).Is(C_Strategy)
   _CL_obj.targetGdp = tGdp
@@ -2954,8 +2962,7 @@ function strategy (tGdp,tCO2,tHappy,wGDP,wCO2) {
 
 // ----- function from method fP @ float ------------- 
 //  easier for step-wise functions :)
-//  print a float in fixed number of characters -------------------------------
-function fP (x,i) { 
+//  print a float in fixed number of characters -------------------------------function fP (x,i) { 
   if (x < 0) { 
     kernel.PRINC("-")
     fP((-x),(i-1))
@@ -2971,8 +2978,7 @@ function fP (x,i) {
   } 
 
 // ----- function from method sum @ list ------------- 
-//  our sum macro  
-function sum (l) { 
+//  our sum macro  function sum (l) { 
   var Result 
   var x  = 0
   for (const y of l){ 
@@ -2983,43 +2989,41 @@ function sum (l) {
   } 
 
 // ----- function from method average @ list ------------- 
-//  average
-function average (l) { 
+//  averagefunction average (l) { 
   var Result 
   var arg_1 
-  var g0499  = 0
-  for (const g0500 of l){ 
-    g0499 = (g0499+g0500)
+  var g0514  = 0
+  for (const g0515 of l){ 
+    g0514 = (g0514+g0515)
     } 
-  arg_1 = g0499
+  arg_1 = g0514
   Result = (arg_1/l.length)
   return Result
   } 
 
 // ----- function from method float! @ float ------------- 
-//  makes float! a coercion (works both for integer and float)
-function float_I_float (x) { 
+//  makes float! a coercion (works both for integer and float)function float_I_float (x) { 
   return  x
   } 
 
 // ----- function from method getNeed @ list<type_expression>(Consumer, integer) ------------- 
 //  verbosity for model M2
-//  computes the need - Step 1
+//  [1] computes the need - Step 1
 //  two ways: (a) direct application of economy/status
 //            (b) memory: "dampening factor"
 //  note the "need" does not take savings into account since they'll be added
 //  Note: pop  growth comes from Emerging countries => mostly linear (KISS)
-//  GW4: the need are now localized (c.population & c.gdp)
-function getNeed_Consumer1 (c,y) { 
+//  GW4: the need are now localized (c.population & c.gdp)function getNeed_Consumer1 (c,y) { 
   var b  = c.economy
   var c0 
-  var g0501  = 0
-  for (const g0502 of c.startNeeds){ 
-    g0501 = (g0501+g0502)
+  var g0516  = 0
+  for (const g0517 of c.startNeeds){ 
+    g0516 = (g0516+g0517)
     } 
-  c0 = g0501
+  c0 = g0516
   var dmr  = (1-b.dematerialize.Get(yearF(y)))
   var c2  = ((((c0*dmr)*b.GlobalEconomyRatio(y))*b.PopulationRatio(y))*(1-b.disasterRatios[(y-1)-1]))
+  
   
   
   if (C_TESTC == c) { 
@@ -3048,13 +3052,22 @@ function getNeed_Consumer1 (c,y) {
     } 
   var arg_1 
   var s_bag  = []
-  for (const g0503 of C_Supplier.descendants){ 
-    for (const s of g0503.instances){ 
+  for (const g0518 of C_Supplier.descendants){ 
+    for (const s of g0518.instances){ 
       kernel.add_list(s_bag,(c2*c.Ratio(s)))
       } 
     } 
   arg_1 = s_bag
   c.needs[y-1]=arg_1
+  var arg_2 
+  var s_bag  = []
+  for (const g0519 of C_Supplier.descendants){ 
+    for (const s of g0519.instances){ 
+      kernel.add_list(s_bag,(c2*c.Ratio(s)))
+      } 
+    } 
+  arg_2 = s_bag
+  c.needs1[y-1]=arg_2
   if (y > 1) { 
     for (const tr of C_pb.transitions){ 
       c.TransferNeed(y,tr,(c.TransferRate(tr,(y-1))*c.needs[y-1][tr.from.index-1]))
@@ -3064,61 +3077,59 @@ function getNeed_Consumer1 (c,y) {
 
 // ----- function from method exportReductionRatio @ list<type_expression>(Block, integer) ------------- 
 //  previous methods the total outerCommerce = growth (1 - exportReductionRatio)
-//  this methods returns only the export reduction
-function exportReductionRatio_Block1 (w,y) { 
+//  this methods returns only the export reductionfunction exportReductionRatio_Block1 (w,y) { 
   var Result 
-  var g0504  = 0
-  for (const g0507 of C_Block.descendants){ 
-    for (const g0506 of g0507.instances){ 
-      if (g0506 != w) { 
-        var g0505  = ((g0506.EconomyRatio(y)*C_pb.trade[w.Index()-1][g0506.Index()-1])*exportReductionRatio_Block2(w,g0506,y))
-        g0504 = (g0504+g0505)
+  var g0520  = 0
+  for (const g0523 of C_Block.descendants){ 
+    for (const g0522 of g0523.instances){ 
+      if (g0522 != w) { 
+        var g0521  = ((g0522.EconomyRatio(y)*C_pb.trade[w.Index()-1][g0522.Index()-1])*exportReductionRatio_Block2(w,g0522,y))
+        g0520 = (g0520+g0521)
         } 
       } 
     } 
-  Result = g0504
+  Result = g0520
   return Result
   } 
 
 // ----- function from method exportReductionRatio @ list<type_expression>(Block, Block, integer) ------------- 
-//  reduction of exportation factor (w -> w2) because of w2 CBAM - always negative
-function exportReductionRatio_Block2 (w,w2,y) { 
+//  reduction of exportation factor (w -> w2) because of w2 CBAM - always negativefunction exportReductionRatio_Block2 (w,w2,y) { 
   return  kernel.min_float(0,((w2.openTrade[w.Index()-1]-1)*C_pb.world.protectionismOutFactor))
   } 
 
 // ----- function from method importReductionRatio @ list<type_expression>(Block, integer) ------------- 
-//  opposite situation : w is impacted by imports from w2, because of its own barrier or because w2 is doing poorly
-function importReductionRatio_Block1 (w,y) { 
+//  opposite situation : w is impacted by imports from w2, because of its own barrier or because w2 is doing poorlyfunction importReductionRatio_Block1 (w,y) { 
   var Result 
-  var g0508  = 0
-  for (const g0511 of C_Block.descendants){ 
-    for (const g0510 of g0511.instances){ 
-      if (g0510 != w) { 
-        var g0509  = (w.ImportTradeRatio(g0510,y)*importReductionRatio_Block2(w,g0510,y))
-        g0508 = (g0508+g0509)
+  var g0524  = 0
+  for (const g0527 of C_Block.descendants){ 
+    for (const g0526 of g0527.instances){ 
+      if (g0526 != w) { 
+        var g0525  = (w.ImportTradeRatio(g0526,y)*importReductionRatio_Block2(w,g0526,y))
+        g0524 = (g0524+g0525)
         } 
       } 
     } 
-  Result = g0508
+  Result = g0524
   return Result
   } 
 
 // ----- function from method importReductionRatio @ list<type_expression>(Block, Block, integer) ------------- 
-//  reduction of importation factor (w2 -> w:import): this is a negative correction when openTrade is less than 1.0
-function importReductionRatio_Block2 (w,w2,y) { 
+//  reduction of importation factor (w2 -> w:import): this is a negative correction when openTrade is less than 1.0function importReductionRatio_Block2 (w,w2,y) { 
   return  kernel.min_float(0,((w.openTrade[w2.Index()-1]-1)*C_pb.world.protectionismInFactor))
   } 
 
 // ----- function from method getNeed @ list<type_expression>(Consumer, Supplier, integer) ------------- 
-//  computes the need - Step 2 - for one precise supplier
+//  [5] computes the need - Step 2 - for one precise supplier
 //  (a) relative needs for + current Carbon tax (the carbon shifts the demand curve)
-//  (b) record the qty that would be bought for a list of price
-function getNeed_Consumer2 (c,s,y) { 
+//  (b) record the qty that would be bought for a list of pricefunction getNeed_Consumer2 (c,s,y) { 
   var t  = c.Tax(s,y)
   
   var p  = 1
-  var g0512  = C_NIS
-  while (p <= g0512) { 
+  var g0528  = C_NIS
+  while (p <= g0528) { 
+    if (c.HowMuch(s,s.OilEquivalent((C_pb.priceRange[p-1]+t))) < 0) { 
+      kernel.MakeError("bug with ~S, ~S @ price ~S",[c,s,s.OilEquivalent((C_pb.priceRange[p-1]+t))]).Close()
+      } 
     C_pb.needCurve[p-1]=(C_pb.needCurve[p-1]+c.HowMuch(s,s.OilEquivalent((C_pb.priceRange[p-1]+t))))
     p = (p+1)
     } 
@@ -3126,8 +3137,7 @@ function getNeed_Consumer2 (c,s,y) {
 
 // ----- function from method consumes @ list<type_expression>(Consumer, Supplier, integer, float) ------------- 
 //  record all savings
-//  consumes : register the CO2 and register the energy
-function consumes_Consumer2 (c,s,y,x) { 
+//  [4] [6]  consumes : register the CO2 and register the energyfunction consumes_Consumer2 (c,s,y,x) { 
   if (s == C_TESTE) { 
     kernel.tformat("[~A] ~S consumes ~F2 of ~S [need = ~F2 reduced-> ~F2] \n",1,[year_I(y),
       c,
@@ -3154,87 +3164,55 @@ function consumes_Consumer2 (c,s,y,x) {
   } 
 
 // ----- function from method steelFactor @ list<type_expression>(Supplier, integer) ------------- 
-//  part of the cost of new energy is linked to the cost of steel
-function steelFactor_Supplier2 (s,y) { 
+//  part of the cost of new energy is linked to the cost of steelfunction steelFactor_Supplier2 (s,y) { 
   var Result 
   var pf  = s.steelFactor
   Result = ((1-pf)+(pf*(C_pb.world.steelPrices[(y-1)-1]/C_pb.world.steelPrices[0])))
   return Result
   } 
 
-// ----- function from method checkBalance @ list<type_expression>(Consumer, integer) ------------- 
-//  verbosity for model M4
-//  debug function: show the energy balance of a consumer (need -> conso + savings + cancel)
-//  we keep it for the time being to avoid new bugs ...
-function checkBalance_Consumer1 (c,y) { 
-  var c1  = c.SumNeeds(y)
-  var c2  = c.SumConsos(y)
-  var c3  = c.SumCancels(y)
-  var c4  = c.SumSavings(y)
-  var csum  = ((c2+c3)+c4)
-  if (kernel.abs_float(((c1-csum)/csum)) > 0.01) { 
-    kernel.tformat("[~S] BALANCE(~S): need ~F2 vs ~F2 {~F%} (consos:~F%, cancels:~F%, savings:~F%)\n",0,[year_I(y),
-      c,
-      c1,
-      csum,
-      kernel.abs_float(((c1-csum)/csum)),
-      (c2/csum),
-      (c3/csum),
-      (c4/csum)])
-    for (const g0513 of C_Supplier.descendants){ 
-      for (const s of g0513.instances){ 
-        checkBalance_Consumer2(c,s,y)
-        } 
-      } 
-    } 
-  } 
-
-// ----- function from method checkBalance @ list<type_expression>(Consumer, Supplier, integer) ------------- 
-//  more precise debug function: balance for a consumer and a supplier
-function checkBalance_Consumer2 (c,s,y) { 
-  var c1  = c.needs[y-1][s.index-1]
-  var c2  = c.consos[y-1][s.index-1]
-  var c3  = (c.needs[y-1][s.index-1]*c.cancel_Z[y-1][s.index-1])
-  var c4  = (c.needs[y-1][s.index-1]*c.savings[y-1][s.index-1])
-  var csum  = ((c2+c3)+c4)
-  
+// ----- function from method applyMaxGrowthRate @ float ------------- 
+//  GW5 : to take the capacity growth into account, we need to compute the max growth rate expressed for the transfer flow,
+//  computes the max capacity growth as a percentage of the complete max flow (all other s2 to s, all blocks)
+//  w1 is the current rate, w2 is the expected rate, we apply the same proportional reduction factor so that the actual transfer flow meets the constraintfunction applyMaxGrowthRate (w1,w2,s,y) { 
+  return  (w1+((w2-w1)*kernel.min_float(1,s.MaxTransferRate(y))))
   } 
 
 // ----- function from method getEconomy @ integer ------------- 
-//  computes the economy for a given year -> 4 blocs then consolidate
-function getEconomy (y) { 
-  for (const g0514 of C_Block.descendants){ 
-    for (const b of g0514.instances){ 
+//  verbosity for model M4
+//  computes the economy for a given year -> 4 blocs then consolidatefunction getEconomy (y) { 
+  for (const g0529 of C_Block.descendants){ 
+    for (const b of g0529.instances){ 
       checkBalance_Consumer1(b.describes,y)
       } 
     } 
-  for (const g0515 of C_Supplier.descendants){ 
-    for (const s of g0515.instances){ 
+  for (const g0530 of C_Supplier.descendants){ 
+    for (const s of g0530.instances){ 
       s.CheckTransfers(y)
       } 
     } 
-  for (const g0516 of C_Block.descendants){ 
-    for (const b of g0516.instances){ 
+  for (const g0531 of C_Block.descendants){ 
+    for (const b of g0531.instances){ 
       b.Consumes(y)
       } 
     } 
   var e  = C_pb.world.all
   e.Consolidate(y)
   steelPrice_integer(y)
-  for (const g0517 of C_Block.descendants){ 
-    for (const b of g0517.instances){ 
+  for (const g0532 of C_Block.descendants){ 
+    for (const b of g0532.instances){ 
       b.SteelConsumption(y)
       } 
     } 
   var arg_1 
-  var g0518  = 0
-  for (const g0521 of C_Block.descendants){ 
-    for (const g0520 of g0521.instances){ 
-      var g0519  = g0520.ironConsos[y-1]
-      g0518 = (g0518+g0519)
+  var g0533  = 0
+  for (const g0536 of C_Block.descendants){ 
+    for (const g0535 of g0536.instances){ 
+      var g0534  = g0535.ironConsos[y-1]
+      g0533 = (g0533+g0534)
       } 
     } 
-  arg_1 = g0518
+  arg_1 = g0533
   C_pb.world.all.ironConsos[y-1]=arg_1
   
   agroOutput(y)
@@ -3244,47 +3222,47 @@ function getEconomy (y) {
   } 
 
 // ----- function from method steelPrice @ integer ------------- 
-//  computes the steel price 
-function steelPrice_integer (y) { 
+//  [7] computes the steel price function steelPrice_integer (y) { 
   var w  = C_pb.world
   w.steelPrices[y-1]=((w.steelPrice*(avgOilEquivalent(y)/avgOilEquivalent(1)))*(w.energy4steel.Get(yearF(y))/w.energy4steel.Get(yearF(1))))
   } 
 
 // ----- function from method computeProtectionism @ integer ------------- 
-//  once the "alpha" factors have been set, we compute the protectionism level ()
-//  note that we protect based on the difference between co2/GDP and the existance of a similar level of CO2 tax
-function computeProtectionism (y) { 
+//  [6] once the "alpha" factors have been set, we compute the protectionism level ()
+//  note that we protect based on the difference between co2/GDP and the existance of a similar level of CO2 taxfunction computeProtectionism (y) { 
   var w  = C_pb.world
-  for (const g0544 of C_Consumer.descendants){ 
-    for (const c1 of g0544.instances){ 
+  for (const g0559 of C_Consumer.descendants){ 
+    for (const c1 of g0559.instances){ 
       var w1  = c1.economy
       var alpha  = c1.protectionismFactor
-      for (const g0545 of C_Consumer.descendants){ 
-        for (const c2 of g0545.instances){ 
+      for (const g0560 of C_Consumer.descendants){ 
+        for (const c2 of g0560.instances){ 
           if (c2 != c1) { 
             var co2perE1 
             var arg_1 
-            var g0546  = 0
-            for (const g0547 of c1.consos[y-1]){ 
-              g0546 = (g0546+g0547)
+            var g0561  = 0
+            for (const g0562 of c1.consos[y-1]){ 
+              g0561 = (g0561+g0562)
               } 
-            arg_1 = g0546
+            arg_1 = g0561
             co2perE1 = (c1.co2Emissions[y-1]/arg_1)
             var co2perE2 
             var arg_2 
-            var g0548  = 0
-            for (const g0549 of c2.consos[y-1]){ 
-              g0548 = (g0548+g0549)
+            var g0563  = 0
+            for (const g0564 of c2.consos[y-1]){ 
+              g0563 = (g0563+g0564)
               } 
-            arg_2 = g0548
+            arg_2 = g0563
             co2perE2 = (c2.co2Emissions[y-1]/arg_2)
             var ctax1  = c1.TaxRate(y)
             var ctax2  = c2.TaxRate(y)
-            w1.openTrade[c2.index-1]=(1-kernel.min_float(1,((alpha*((0 <= ((co2perE2-co2perE1)/co2perE1)) ? 
-              ((co2perE2-co2perE1)/co2perE1) :
+            
+            w1.openTrade[c2.index-1]=(1-kernel.min_float(1,((alpha*((0 <= ((co2perE2-co2perE1)/(0.001+co2perE1))) ? 
+              ((co2perE2-co2perE1)/(0.001+co2perE1)) :
               0))*((0 <= ((ctax1-ctax2)/(0.001+ctax1))) ? 
               ((ctax1-ctax2)/(0.001+ctax1)) :
               0))))
+            
             if (alpha > 0) { 
               kernel.tformat("protectionism for ~S(tax:~F2) -> ~S(tax:~F2) = ~F% from co2/GDP ~F% and ~F%\n",1,[c1,
                 ctax1,
@@ -3302,8 +3280,7 @@ function computeProtectionism (y) {
   } 
 
 // ----- function from method agroOutput @ integer ------------- 
-//  trabnsform m2/MWh into millionskm2/Gtep
-function agroOutput (y) { 
+//  trabnsform m2/MWh into millionskm2/Gtepfunction agroOutput (y) { 
   var w  = C_pb.world
   var e  = C_pb.earth
   var newClean  = ((0 <= (C_pb.clean.capacities[y-1]-C_pb.clean.capacities[(y-1)-1])) ? 
@@ -3318,13 +3295,12 @@ function agroOutput (y) {
   } 
 
 // ----- function from method avgOilEquivalent @ integer ------------- 
-//  avgOilEquivalent(y) is the equivalent oil price for each energy source weighted by production
-function avgOilEquivalent (y) { 
+//  avgOilEquivalent(y) is the equivalent oil price for each energy source weighted by productionfunction avgOilEquivalent (y) { 
   var Result 
   var p  = 0
   var o  = 0
-  for (const g0550 of C_Supplier.descendants){ 
-    for (const s of g0550.instances){ 
+  for (const g0565 of C_Supplier.descendants){ 
+    for (const s of g0565.instances){ 
       p = (p+(s.OilEquivalent(s.sellPrices[y-1])*s.outputs[y-1]))
       o = (o+s.outputs[y-1])
       } 
@@ -3333,11 +3309,46 @@ function avgOilEquivalent (y) {
   return Result
   } 
 
+// ----- function from method checkBalance @ list<type_expression>(Consumer, integer) ------------- 
+//  Dynamic Balance checks for M4 
+//  debug function: show the energy balance of a consumer (need -> conso + savings + cancel)
+//  we keep it for the time being to avoid new bugs ...function checkBalance_Consumer1 (c,y) { 
+  var c1  = c.SumNeeds(y)
+  var c2  = c.SumConsos(y)
+  var c3  = c.SumCancels(y)
+  var c4  = c.SumSavings(y)
+  var csum  = ((c2+c3)+c4)
+  if (kernel.abs_float(((c1-csum)/csum)) > 0.01) { 
+    kernel.tformat("[~S] BALANCE(~S): need ~F2 vs ~F2 {~F%} (consos:~F%, cancels:~F%, savings:~F%)\n",0,[year_I(y),
+      c,
+      c1,
+      csum,
+      kernel.abs_float(((c1-csum)/csum)),
+      (c2/csum),
+      (c3/csum),
+      (c4/csum)])
+    for (const g0566 of C_Supplier.descendants){ 
+      for (const s of g0566.instances){ 
+        checkBalance_Consumer2(c,s,y)
+        } 
+      } 
+    } 
+  } 
+
+// ----- function from method checkBalance @ list<type_expression>(Consumer, Supplier, integer) ------------- 
+//  more precise debug function: balance for a consumer and a supplierfunction checkBalance_Consumer2 (c,s,y) { 
+  var c1  = c.needs[y-1][s.index-1]
+  var c2  = c.consos[y-1][s.index-1]
+  var c3  = (c.needs[y-1][s.index-1]*c.cancel_Z[y-1][s.index-1])
+  var c4  = (c.needs[y-1][s.index-1]*c.savings[y-1][s.index-1])
+  var csum  = ((c2+c3)+c4)
+  
+  } 
+
 // ----- function from method printEnergyPrices @ integer ------------- 
-//  show the prices
-function printEnergyPrices (y) { 
-  for (const g0551 of C_Supplier.descendants){ 
-    for (const s of g0551.instances){ 
+//  show the pricesfunction printEnergyPrices (y) { 
+  for (const g0567 of C_Supplier.descendants){ 
+    for (const s of g0567.instances){ 
       kernel.print_any(s)
       kernel.PRINC(":")
       kernel.printFDigit_float(s.sellPrices[y-1],1)
@@ -3347,16 +3358,15 @@ function printEnergyPrices (y) {
   } 
 
 // ----- function from method priceSample @ list ------------- 
-//  sample makes an affine object from the prod/need curves - x axis is price increment
-function priceSample (l) { 
+//  sample makes an affine object from the prod/need curves - x axis is price incrementfunction priceSample (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
   var l1 
   var x_bag  = []
   var x  = 1
-  var g0552  = C_NIS
-  while (x <= g0552) { 
+  var g0568  = C_NIS
+  while (x <= g0568) { 
     kernel.add_list(x_bag,C_pb.priceRange[x-1])
     x = (x+1)
     } 
@@ -3380,8 +3390,7 @@ function priceSample (l) {
   } 
 
 // ----- function from method timeSample @ list ------------- 
-//  same with a time serie - x axis is years
-function timeSample (l) { 
+//  same with a time serie - x axis is yearsfunction timeSample (l) { 
   var Result 
   var m1  = 1e+09
   var M1  = -1e+09
@@ -3389,8 +3398,8 @@ function timeSample (l) {
   var l1 
   var i_bag  = []
   var i  = 1
-  var g0553  = nL
-  while (i <= g0553) { 
+  var g0569  = nL
+  while (i <= g0569) { 
     kernel.add_list(i_bag,yearF(i))
     i = (i+1)
     } 
@@ -3415,12 +3424,11 @@ function timeSample (l) {
 
 // ----- function from method add_years @ integer ------------- 
 //  CRAZY CLAIRE BUG: if this method is called add, the code cannot be printed
-//  add n years of simulations
-function add_years (n) { 
+//  add n years of simulationsfunction add_years (n) { 
   kernel.time_set()
   var i  = 1
-  var g0554  = n
-  while (i <= g0554) { 
+  var g0570  = n
+  while (i <= g0570) { 
     C_pb.Run()
     i = (i+1)
     } 
@@ -3431,147 +3439,140 @@ function add_years (n) {
 // ----- function from method allSaving @ integer ------------- 
 function allSaving_integer (y) { 
   var Result 
-  var g0563  = 0
-  for (const g0566 of C_Consumer.descendants){ 
-    for (const g0565 of g0566.instances){ 
-      var g0564  = g0565.SumSavings(y)
-      g0563 = (g0563+g0564)
+  var g0579  = 0
+  for (const g0582 of C_Consumer.descendants){ 
+    for (const g0581 of g0582.instances){ 
+      var g0580  = g0581.SumSavings(y)
+      g0579 = (g0579+g0580)
       } 
     } 
-  Result = g0563
+  Result = g0579
   return Result
   } 
 
 // ----- function from method steelConso @ integer ------------- 
 function steelConso (y) { 
   var Result 
-  var g0567  = 0
-  for (const g0570 of C_Block.descendants){ 
-    for (const g0569 of g0570.instances){ 
-      var g0568  = g0569.ironConsos[y-1]
-      g0567 = (g0567+g0568)
+  var g0583  = 0
+  for (const g0586 of C_Block.descendants){ 
+    for (const g0585 of g0586.instances){ 
+      var g0584  = g0585.ironConsos[y-1]
+      g0583 = (g0583+g0584)
       } 
     } 
-  Result = g0567
+  Result = g0583
   return Result
   } 
 
 // ----- function from method carbonTax @ integer ------------- 
 function carbonTax_integer (y) { 
   var Result 
-  var g0571  = 0
-  for (const g0574 of C_Consumer.descendants){ 
-    for (const g0573 of g0574.instances){ 
-      var g0572  = g0573.carbonTaxes[y-1]
-      g0571 = (g0571+g0572)
+  var g0587  = 0
+  for (const g0590 of C_Consumer.descendants){ 
+    for (const g0589 of g0590.instances){ 
+      var g0588  = g0589.carbonTaxes[y-1]
+      g0587 = (g0587+g0588)
       } 
     } 
-  Result = g0571
+  Result = g0587
   return Result
   } 
 
 // ----- function from method co2KWh @ integer ------------- 
-//  computes the co2KWh ratio for each year
-function co2KWh (y) { 
+//  computes the co2KWh ratio for each yearfunction co2KWh (y) { 
   var Result 
   var arg_1 
-  var g0575  = 0
-  for (const g0578 of C_Supplier.descendants){ 
-    for (const g0577 of g0578.instances){ 
-      var g0576  = (g0577.co2Kwh*g0577.outputs[y-1])
-      g0575 = (g0575+g0576)
+  var g0591  = 0
+  for (const g0594 of C_Supplier.descendants){ 
+    for (const g0593 of g0594.instances){ 
+      var g0592  = (g0593.co2Kwh*g0593.outputs[y-1])
+      g0591 = (g0591+g0592)
       } 
     } 
-  arg_1 = g0575
+  arg_1 = g0591
   var arg_2 
-  var g0579  = 0
-  for (const g0582 of C_Supplier.descendants){ 
-    for (const g0581 of g0582.instances){ 
-      var g0580  = g0581.outputs[y-1]
-      g0579 = (g0579+g0580)
+  var g0595  = 0
+  for (const g0598 of C_Supplier.descendants){ 
+    for (const g0597 of g0598.instances){ 
+      var g0596  = g0597.outputs[y-1]
+      g0595 = (g0595+g0596)
       } 
     } 
-  arg_2 = g0579
+  arg_2 = g0595
   Result = (arg_1/arg_2)
   return Result
   } 
 
 // ----- function from method energyIntensity @ integer ------------- 
-//  computes the energy intensity (kW.h/$) for each year
-function energyIntensity_integer (y) { 
+//  computes the energy intensity (kW.h/$) for each yearfunction energyIntensity_integer (y) { 
   return  (TWh(C_pb.world.all.totalConsos[y-1])/(1000*C_pb.world.all.results[y-1]))
   } 
 
 // ----- function from method gdpp @ integer ------------- 
-//  compute the GDP/person
-function gdpp (y) { 
+//  compute the GDP/personfunction gdpp (y) { 
   return  (C_pb.world.all.results[y-1]/worldPopulation(y))
   } 
 
 // ----- function from method averagePain @ integer ------------- 
-//  averagePain
-function averagePain (y) { 
+//  averagePainfunction averagePain (y) { 
   var Result 
   var arg_1 
-  var g0591  = 0
-  for (const g0594 of C_Consumer.descendants){ 
-    for (const g0593 of g0594.instances){ 
-      var g0592  = g0593.painLevels[y-1]
-      g0591 = (g0591+g0592)
+  var g0607  = 0
+  for (const g0610 of C_Consumer.descendants){ 
+    for (const g0609 of g0610.instances){ 
+      var g0608  = g0609.painLevels[y-1]
+      g0607 = (g0607+g0608)
       } 
     } 
-  arg_1 = g0591
+  arg_1 = g0607
   Result = (arg_1/4)
   return Result
   } 
 
 // ----- function from method averageEnergyPain @ integer ------------- 
-//  averagePain from (lack of) energy
-function averageEnergyPain (y) { 
+//  averagePain from (lack of) energyfunction averageEnergyPain (y) { 
   var Result 
   var arg_1 
-  var g0595  = 0
-  for (const g0598 of C_Consumer.descendants){ 
-    for (const g0597 of g0598.instances){ 
-      var g0596  = g0597.painEnergy[y-1]
-      g0595 = (g0595+g0596)
+  var g0611  = 0
+  for (const g0614 of C_Consumer.descendants){ 
+    for (const g0613 of g0614.instances){ 
+      var g0612  = g0613.painEnergy[y-1]
+      g0611 = (g0611+g0612)
       } 
     } 
-  arg_1 = g0595
+  arg_1 = g0611
   Result = (arg_1/4)
   return Result
   } 
 
 // ----- function from method averageEconomyPain @ integer ------------- 
-//  averagePain from Economy (loss of PNB)
-function averageEconomyPain (y) { 
+//  averagePain from Economy (loss of PNB)function averageEconomyPain (y) { 
   var Result 
   var arg_1 
-  var g0599  = 0
-  for (const g0602 of C_Consumer.descendants){ 
-    for (const g0601 of g0602.instances){ 
-      var g0600  = g0601.painResults[y-1]
-      g0599 = (g0599+g0600)
+  var g0615  = 0
+  for (const g0618 of C_Consumer.descendants){ 
+    for (const g0617 of g0618.instances){ 
+      var g0616  = g0617.painResults[y-1]
+      g0615 = (g0615+g0616)
       } 
     } 
-  arg_1 = g0599
+  arg_1 = g0615
   Result = (arg_1/4)
   return Result
   } 
 
 // ----- function from method averageWarmingPain @ integer ------------- 
-//  averagePain from warming
-function averageWarmingPain (y) { 
+//  averagePain from warmingfunction averageWarmingPain (y) { 
   var Result 
   var arg_1 
-  var g0603  = 0
-  for (const g0606 of C_Consumer.descendants){ 
-    for (const g0605 of g0606.instances){ 
-      var g0604  = g0605.painWarming[y-1]
-      g0603 = (g0603+g0604)
+  var g0619  = 0
+  for (const g0622 of C_Consumer.descendants){ 
+    for (const g0621 of g0622.instances){ 
+      var g0620  = g0621.painWarming[y-1]
+      g0619 = (g0619+g0620)
       } 
     } 
-  arg_1 = g0603
+  arg_1 = g0619
   Result = (arg_1/4)
   return Result
   } 
@@ -3580,8 +3581,7 @@ function averageWarmingPain (y) {
 //  ********************************************************************
 //  *    Part 2: Simulation & Results                                  *
 //  ********************************************************************
-//  see() shows the situation for a given year
-function see_void () { 
+//  see() shows the situation for a given yearfunction see_void () { 
   kernel.PRINC("************************************************************************************\n")
   kernel.PRINC("*          Simulation results in Year ")
   kernel.princ_integer(year_I(C_pb.year))
@@ -3592,18 +3592,18 @@ function see_void () {
   kernel.PRINC("************************************************************************************\n")
   C_pb.world.all.See(C_pb.year)
   C_pb.earth.See(C_pb.year)
-  for (const g0607 of C_Supplier.descendants){ 
-    for (const s of g0607.instances){ 
+  for (const g0623 of C_Supplier.descendants){ 
+    for (const s of g0623.instances){ 
       s.See(C_pb.year)
       } 
     } 
-  for (const g0608 of C_Consumer.descendants){ 
-    for (const c of g0608.instances){ 
+  for (const g0624 of C_Consumer.descendants){ 
+    for (const c of g0624.instances){ 
       c.See(C_pb.year)
       } 
     } 
-  for (const g0609 of C_Consumer.descendants){ 
-    for (const c of g0609.instances){ 
+  for (const g0625 of C_Consumer.descendants){ 
+    for (const c of g0625.instances){ 
       c.economy.See(C_pb.year)
       } 
     } 
@@ -3611,12 +3611,11 @@ function see_void () {
   } 
 
 // ----- function from method sls @ void ------------- 
-//  single line summary
-function sls () { 
+//  single line summaryfunction sls () { 
   var w  = C_pb.world.all
   var y  = C_pb.year
   kernel.PRINC("// ")
-  kernel.princ_string8(C_pb.comment,4)
+  kernel.princ_string8(C_pb.comment,5)
   kernel.PRINC(" PNB: ")
   kernel.printFDigit_float(w.results[y-1],1)
   kernel.PRINC("T$, ")
@@ -3631,14 +3630,14 @@ function sls () {
   var arg_1 
   var arg_2 
   var arg_3 
-  var g0614  = 0
-  for (const g0617 of C_Consumer.descendants){ 
-    for (const g0616 of g0617.instances){ 
-      var g0615  = g0616.ePWhs[y-1]
-      g0614 = (g0614+g0615)
+  var g0630  = 0
+  for (const g0633 of C_Consumer.descendants){ 
+    for (const g0632 of g0633.instances){ 
+      var g0631  = g0632.ePWhs[y-1]
+      g0630 = (g0630+g0631)
       } 
     } 
-  arg_3 = g0614
+  arg_3 = g0630
   arg_2 = (arg_3/w.totalConsos[y-1])
   arg_1 = (arg_2*100)
   kernel.printFDigit_float(arg_1,1)
@@ -3646,8 +3645,7 @@ function sls () {
   } 
 
 // ----- function from method pl2 @ list ------------- 
-//  prints a list of float with F2
-function pl2 (l) { 
+//  prints a list of float with F2function pl2 (l) { 
   for (const x of l){ 
     kernel.printFDigit_float(x,2)
     kernel.PRINC(" ")
@@ -3655,17 +3653,16 @@ function pl2 (l) {
   } 
 
 // ----- function from method worldPopulation @ integer ------------- 
-//  worldwide population
-function worldPopulation (y) { 
+//  worldwide populationfunction worldPopulation (y) { 
   var Result 
-  var g0618  = 0
-  for (const g0621 of C_Consumer.descendants){ 
-    for (const g0620 of g0621.instances){ 
-      var g0619  = g0620.population.Get(yearF(y))
-      g0618 = (g0618+g0619)
+  var g0634  = 0
+  for (const g0637 of C_Consumer.descendants){ 
+    for (const g0636 of g0637.instances){ 
+      var g0635  = g0636.population.Get(yearF(y))
+      g0634 = (g0634+g0635)
       } 
     } 
-  Result = g0618
+  Result = g0634
   return Result
   } 
 
@@ -3674,8 +3671,7 @@ function worldPopulation (y) {
 //  *    Part 3: Experiments                                           *
 //  ********************************************************************
 //  initialize all the simulation objects
-//  we want the time series *s[y]
-function init_WorldClass1 (w,e,c) { 
+//  we want the time series *s[y]function init_WorldClass1 (w,e,c) { 
   C_pb.world = w
   C_pb.earth = C_Earth.instances[0]
   C_pb.oil = e
@@ -3684,8 +3680,8 @@ function init_WorldClass1 (w,e,c) {
     var va_arg2 
     var i_bag  = []
     var i  = 2
-    var g0622  = (C_NIS+1)
-    while (i <= g0622) { 
+    var g0638  = (C_NIS+1)
+    while (i <= g0638) { 
       kernel.add_list(i_bag,(C_PMIN+((C_PMAX*(i*i))/((C_NIS+1)*(C_NIS+1)))))
       i = (i+1)
       } 
@@ -3696,8 +3692,8 @@ function init_WorldClass1 (w,e,c) {
     var va_arg2 
     var x_bag  = []
     var x  = 1
-    var g0623  = C_NIS
-    while (x <= g0623) { 
+    var g0639  = C_NIS
+    while (x <= g0639) { 
       kernel.add_list(x_bag,0)
       x = (x+1)
       } 
@@ -3708,8 +3704,8 @@ function init_WorldClass1 (w,e,c) {
     var va_arg2 
     var x_bag  = []
     var x  = 1
-    var g0624  = C_NIS
-    while (x <= g0624) { 
+    var g0640  = C_NIS
+    while (x <= g0640) { 
       kernel.add_list(x_bag,0)
       x = (x+1)
       } 
@@ -3720,8 +3716,8 @@ function init_WorldClass1 (w,e,c) {
     var va_arg2 
     var x_bag  = []
     var x  = 1
-    var g0625  = C_NIS
-    while (x <= g0625) { 
+    var g0641  = C_NIS
+    while (x <= g0641) { 
       kernel.add_list(x_bag,0)
       x = (x+1)
       } 
@@ -3732,19 +3728,18 @@ function init_WorldClass1 (w,e,c) {
   } 
 
 // ----- function from method reinit @ void ------------- 
-//  reusable part (reinit)
-function reinit_void () { 
+//  reusable part (reinit)function reinit_void () { 
   C_pb.year = 1
   init_WorldClass4(C_pb.world)
   C_pb.earth.Init()
   consolidate_void()
-  for (const g0626 of C_Supplier.descendants){ 
-    for (const s of g0626.instances){ 
+  for (const g0642 of C_Supplier.descendants){ 
+    for (const s of g0642.instances){ 
       s.Init()
       } 
     } 
-  for (const g0627 of C_Consumer.descendants){ 
-    for (const c of g0627.instances){ 
+  for (const g0643 of C_Consumer.descendants){ 
+    for (const c of g0643.instances){ 
       c.Init()
       } 
     } 
@@ -3752,8 +3747,7 @@ function reinit_void () {
   } 
 
 // ----- function from method init @ list<type_expression>(WorldClass) ------------- 
-//  init for the world economy
-function init_WorldClass4 (w) { 
+//  init for the world economyfunction init_WorldClass4 (w) { 
   { 
     var va_arg2 
     var _CL_obj  = (new Economy()).Is(C_Economy)
@@ -3762,26 +3756,26 @@ function init_WorldClass4 (w) {
     } 
   w.all.Init()
   var arg_1 
-  var g0628  = 0
-  for (const g0631 of C_Consumer.descendants){ 
-    for (const g0630 of g0631.instances){ 
-      var g0629 
-      var g0632  = 0
-      for (const g0633 of g0630.consumes){ 
-        g0632 = (g0632+g0633)
+  var g0644  = 0
+  for (const g0647 of C_Consumer.descendants){ 
+    for (const g0646 of g0647.instances){ 
+      var g0645 
+      var g0648  = 0
+      for (const g0649 of g0646.consumes){ 
+        g0648 = (g0648+g0649)
         } 
-      g0629 = g0632
-      g0628 = (g0628+g0629)
+      g0645 = g0648
+      g0644 = (g0644+g0645)
       } 
     } 
-  arg_1 = g0628
+  arg_1 = g0644
   w.all.totalConsos[0]=arg_1
   { 
     var va_arg2 
     var i_bag  = []
     var i  = 1
-    var g0634  = C_NIT
-    while (i <= g0634) { 
+    var g0650  = C_NIT
+    while (i <= g0650) { 
       kernel.add_list(i_bag,0)
       i = (i+1)
       } 
@@ -3793,8 +3787,8 @@ function init_WorldClass4 (w) {
     var va_arg2 
     var i_bag  = []
     var i  = 1
-    var g0635  = C_NIT
-    while (i <= g0635) { 
+    var g0651  = C_NIT
+    while (i <= g0651) { 
       kernel.add_list(i_bag,0)
       i = (i+1)
       } 
@@ -3806,8 +3800,8 @@ function init_WorldClass4 (w) {
     var va_arg2 
     var i_bag  = []
     var i  = 1
-    var g0636  = C_NIT
-    while (i <= g0636) { 
+    var g0652  = C_NIT
+    while (i <= g0652) { 
       kernel.add_list(i_bag,0)
       i = (i+1)
       } 
@@ -3818,8 +3812,8 @@ function init_WorldClass4 (w) {
     var va_arg2 
     var i_bag  = []
     var i  = 1
-    var g0637  = C_NIT
-    while (i <= g0637) { 
+    var g0653  = C_NIT
+    while (i <= g0653) { 
       kernel.add_list(i_bag,0)
       i = (i+1)
       } 
@@ -3830,43 +3824,42 @@ function init_WorldClass4 (w) {
   } 
 
 // ----- function from method consolidate @ void ------------- 
-//  consolidation of the world economy : init version
-function consolidate_void () { 
+//  consolidation of the world economy : init versionfunction consolidate_void () { 
   var e  = C_pb.world.all
   { 
     var va_arg2 
-    var g0638  = 0
-    for (const g0641 of C_Block.descendants){ 
-      for (const g0640 of g0641.instances){ 
-        var g0639  = g0640.gdp
-        g0638 = (g0638+g0639)
+    var g0654  = 0
+    for (const g0657 of C_Block.descendants){ 
+      for (const g0656 of g0657.instances){ 
+        var g0655  = g0656.gdp
+        g0654 = (g0654+g0655)
         } 
       } 
-    va_arg2 = g0638
+    va_arg2 = g0654
     e.gdp = va_arg2
     } 
   { 
     var va_arg2 
-    var g0642  = 0
-    for (const g0645 of C_Block.descendants){ 
-      for (const g0644 of g0645.instances){ 
-        var g0643  = g0644.investG
-        g0642 = (g0642+g0643)
+    var g0658  = 0
+    for (const g0661 of C_Block.descendants){ 
+      for (const g0660 of g0661.instances){ 
+        var g0659  = g0660.investG
+        g0658 = (g0658+g0659)
         } 
       } 
-    va_arg2 = g0642
+    va_arg2 = g0658
     e.investG = va_arg2
     } 
   { 
     var va_arg2 
-    var g0646  = 0
-    for (const g0649 of C_Block.descendants){ 
-      for (const g0648 of g0649.instances){ 
-        var g0647  = g0648.investE
-        g0646 = (g0646+g0647)
+    var g0662  = 0
+    for (const g0665 of C_Block.descendants){ 
+      for (const g0664 of g0665.instances){ 
+        var g0663  = g0664.investE
+        g0662 = (g0662+g0663)
         } 
       } 
-    va_arg2 = g0646
+    va_arg2 = g0662
     e.investE = va_arg2
     } 
   } 
@@ -3875,8 +3868,7 @@ function consolidate_void () {
 //  ********************************************************************
 //  *    Part 4: Utility functions for input                           *
 //  ********************************************************************
-//  accelerate : change the date to accelerate a policy (pivot is 2000)
-function accelerate_list (policy,factor) { 
+//  accelerate : change the date to accelerate a policy (pivot is 2000)function accelerate_list (policy,factor) { 
   var Result 
   var v_list1 
   var p 
@@ -3891,16 +3883,26 @@ function accelerate_list (policy,factor) {
   return Result
   } 
 
+// ----- function from method improve% @ float ------------- 
+//  improve% : modify the factors without changing the dates
+//  special form so that % stays a percentfunction improve_Z_float (x,factor) { 
+  
+  if (factor > 0) { 
+    return  (x+(factor*(1-x)))
+    } else {
+    return  (x+(factor*x))
+    } 
+  } 
+
 // ----- function from method tune @ list ------------- 
-//  tune a policy by changing one substitution
-function tune (policy,from,to,line) { 
+//  tune a policy by changing one substitutionfunction tune (policy,from,to,line) { 
   var Result 
   var tr  = from.GetTransition(to)
   var n  = policy.length
   var i_bag  = []
   var i  = 1
-  var g0652  = n
-  while (i <= g0652) { 
+  var g0668  = n
+  while (i <= g0668) { 
     kernel.add_list(i_bag,((i == tr.index) ? 
       line :
       policy[i-1]))
@@ -3912,17 +3914,16 @@ function tune (policy,from,to,line) {
 
 // ----- function from method balanceOfTrade @ list ------------- 
 //  create a trade matrix
-//  inputs are export flows in billions of dollars, gdp in in trillons of dollars
-function balanceOfTrade (l) { 
+//  inputs are export flows in billions of dollars, gdp in in trillons of dollarsfunction balanceOfTrade (l) { 
   var Result 
   var c_bag  = []
-  for (const g0657 of C_Consumer.descendants){ 
-    for (const c of g0657.instances){ 
+  for (const g0673 of C_Consumer.descendants){ 
+    for (const c of g0673.instances){ 
       var arg_1 
       var ec  = c.economy
       var c2_bag  = []
-      for (const g0658 of C_Consumer.descendants){ 
-        for (const c2 of g0658.instances){ 
+      for (const g0674 of C_Consumer.descendants){ 
+        for (const c2 of g0674.instances){ 
           kernel.add_list(c2_bag,(l[c.index-1][c2.index-1]/(ec.gdp*1000)))
           } 
         } 
@@ -3938,15 +3939,13 @@ function balanceOfTrade (l) {
 //  ********************************************************************
 //  *    Part 4: Launch (go(n))                                        *
 //  ********************************************************************
-//  do n years of simulation
-function go (n) { 
+//  do n years of simulationfunction go (n) { 
   init_WorldClass1(C_World,C_Oil,C_Clean)
    add_years(n)
   } 
 
 // ----- function from method jsmain @ void ------------- 
-//  what we launch by default with js
-function jsmain () { 
+//  what we launch by default with jsfunction jsmain () { 
   kernel.ClEnv.verbose = 0
    go(90)
   } 
@@ -3992,8 +3991,8 @@ function MetaLoad() {
   C_TESTC = null 
   C_SHOW1 = 5 
   C_SHOW2 = 5 
-  C_CinCO2 = (12/44) 
   C_HOW = 5 
+  C_BALANCE = 5 
   C_SHOW3 = 5 
   C_SHOW4 = 5 
   C_SHOW5 = 5 
@@ -4129,42 +4128,42 @@ function MetaLoad() {
   C_USDemat = affine([[2010,0],
     [2020,0.22],
     [2030,0.35],
-    [2050,0.5],
-    [2100,0.55]]) 
+    [2050,0.48],
+    [2100,0.6]]) 
   C_EUDemat = affine([[2010,0],
     [2020,0.1],
     [2030,0.25],
-    [2050,0.45],
-    [2100,0.5]]) 
+    [2050,0.4],
+    [2100,0.55]]) 
   C_CNDemat = affine([[2010,0],
     [2020,0.28],
     [2030,0.35],
     [2050,0.45],
-    [2100,0.5]]) 
+    [2100,0.6]]) 
   C_RWDemat = affine([[2010,0],
     [2020,0.07],
     [2030,0.14],
     [2050,0.3],
-    [2100,0.3]]) 
+    [2100,0.5]]) 
   C_UScancel = affine([[35.3,0],
     [69,0.05],
     [138,0.33999999999999997],
     [276,0.54],
-    [520,0.8],
-    [860,1]]) 
+    [520,0.7],
+    [860,0.99]]) 
   C_EUcancel = C_UScancel 
   C_CNcancel = affine([[35.3,0],
     [69,0.3],
-    [138,0.6],
+    [138,0.5],
     [276,0.7],
-    [520,0.9],
-    [860,1]]) 
+    [520,0.8],
+    [860,0.99]]) 
   C_RestCancel = affine([[35.3,0],
     [69,0.15000000000000002],
     [138,0.45],
     [276,0.6],
     [520,0.9],
-    [860,1]]) 
+    [860,0.99]]) 
   C_CancelImpact = affine([[0,0],
     [0.1,0.05],
     [0.2,0.14],
