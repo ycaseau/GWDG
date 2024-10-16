@@ -1,0 +1,10 @@
+CCEM v6 is WIP ...
+
+Main changes from v0.5
+======================
+
+(1) 5 zones : India added
+(2) new M4 model with decay
+(3) new tuning of GDP in constant 2010 dollars
+(4) KNU (Key Known Unknown are represented as objects)
+(5) gtes.cl file -> best response implementation with local opt
