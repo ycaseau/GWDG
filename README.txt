@@ -1,10 +1,10 @@
 // +-------------------------------------------------------------------------+
 // |     Global Warming Dynamic Games (GWDG)                                 |
 // |     readme                                                              |
-// |     Copyright (C) Yves Caseau, 2008-2024                                |
+// |     Copyright (C) Yves Caseau, 2008-2026                                |
 // +-------------------------------------------------------------------------+
 
-VERSION : V0.5
+VERSION : V0.9
 
 1. Project Description 
 ======================
@@ -16,11 +16,11 @@ GWDG  is a long term project based on
 
 This repository is the official repo for CCEM (Coupling Coarse Earth Models)
 - each major relase has its own subdirectory 
-- the current version is v0.5
+- the current version is v0.9
 
 CCEM Web site : http://modelccem.eu
 
-2. Version Description:  (V0.5)
+2. Version Description:  (V0.9)
 ======================
 
 Version 0.3:  2022
@@ -32,6 +32,10 @@ This is the reference version for the "IAM & Global Warming" talks
 
 Version 0.5 : 2024
 this version has a complete implementation of redirection, including trade protectionism (e.g.CBAM)
+
+Version 0.9 : 2026
+The history of versions and their features is now recorded on CCEM web site : http://modelccem.eu
+
 
 
 3. Installation:
@@ -65,7 +69,10 @@ log.cl:            as usual, the log file => where to look firt to read about th
 model.cl           data model
 game.cl            The CCEM model (heart of GWDG)
 simul.cl           simulation loop + utilities
-input.cl           configuration file (always interpreted)
+input2010.cl       configuration file (always interpreted) when the origin of simulation is year 2010
+display.cl         additional CLAIRE result-display methods that are useful when not using a GUI
+web.cl             definition of the G2WS GUI that is used both with clserve and G2WS (javascript)
+
 	
 5. Related doc
 ==============
@@ -81,7 +88,7 @@ This project uses scenario files (look at oai to use a similar approach)
 7.Test and run
 ==============
 
-the test file is input.cl 
+the test file is input2010.cl (or test1980.cl, available for some versions)
 The test file contains the configuration
   - description of the suppliers, zones, economies
   - definition of the scenario experiments h*()
